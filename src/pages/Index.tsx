@@ -9,6 +9,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Channel, PollingResponseEntity } from "../models/transactions";
+import { getConfig } from "../utils/config";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -28,51 +29,45 @@ export default function Index() {
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
   React.useEffect(() => {
-    if (window.location.href.includes("?urlRedirect=")) {
-      const requestId = window.location.href
-        .split("?urlRedirect=")[0]!
-        .split("/")
-        .pop()!;
-      const pollingInterval = setInterval(() => {
-        fetch(`apiBasePath/request-payments/postepay/${requestId}`)
-          .then((resp) => resp.json())
-          .then((data: PollingResponseEntity) => {
-            if (data.authOutcome) {
-              setInfo(data);
-            } else {
-              clearInterval(pollingInterval);
-            }
-          })
-          .catch(() => {
-            setInfo({
-              channel: "APP",
-              urlRedirect: "test",
-              clientResponseUrl: "",
-              logoResourcePath:
-                "https://www.poste.it/img/1476453799105/icona-logo-app-postepay.png",
-              authOutcome: null,
-              error: null,
-            });
-            setTimeout(() => clearInterval(pollingInterval), 10000);
-          });
-      }, 3000);
-    } else {
-      const requestId = window.location.href.split("/").pop()!;
-      fetch(`apiBasePath/request-payments/postepay/${requestId}`)
+    const requestId = window.location.href.includes("?urlRedirect=")
+      ? window.location.href
+          .split("?urlRedirect=")[0]
+          .split("/")
+          .pop()
+      : window.location.href.split("/").pop();
+
+    const pollingInterval = setInterval(() => {
+      fetch(`${getConfig().API_HOST}/${requestId}`)
         .then((resp) => resp.json())
-        .then((data: PollingResponseEntity) => setInfo(data))
-        .catch(() =>
-          setInfo({
+        .then((data: PollingResponseEntity) => {
+          setInfo(data);
+          data.authOutcome && window.location.assign(data.clientResponseUrl);
+        })
+        .catch(() => {
+          let mockData: PollingResponseEntity = {
             channel: "APP",
             urlRedirect: "test",
-            clientResponseUrl: "",
+            clientResponseUrl: "https://google.com",
             logoResourcePath:
               "https://www.poste.it/img/1476453799105/icona-logo-app-postepay.png",
             authOutcome: null,
             error: null,
-          })
-        );
-    }
+          };
+          setTimeout(() => {
+            mockData = {
+              ...mockData,
+              authOutcome: "Ok",
+            };
+            setInfo(mockData);
+            mockData.authOutcome &&
+              window.location.assign(mockData.clientResponseUrl);
+          }, 5000);
+          setInfo(mockData);
+          mockData.authOutcome &&
+            window.location.assign(mockData.clientResponseUrl);
+          setTimeout(() => clearInterval(pollingInterval), 20000);
+        });
+    }, getConfig().API_GET_INTERVAL);
   }, []);
 
   React.useEffect(() => {

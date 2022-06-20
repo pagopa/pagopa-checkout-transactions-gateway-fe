@@ -6,15 +6,19 @@
   "license": "MIT",
   "scripts": {
     "type-check": "tsc",
-    "start": "parcel src/index.html"
+    "start": "parcel src/index.html",
+    "convert": "api-spec-converter --from=openapi_3 --to=swagger_2 --syntax=yaml --order=alpha https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/api/payment_transactions_gateway_api/v1/_openapi.json.tpl > swagger.yaml",
+    "generate": "npm-run-all generate:*",
+    "generate:gateway-transactions-api": "rimraf generated/definitions/gateway-transactions-api && shx mkdir -p generated/definitions/gateway-transactions-api && gen-api-models --api-spec swagger.yaml --no-strict --out-dir ./generated/definitions/gateway-transactions-api --request-types --response-decoders --client"
   },
   "devDependencies": {
-    "@pagopa/openapi-codegen-ts": "^10.0.7",
+    "@pagopa/openapi-codegen-ts": "^11",
     "@parcel/transformer-pug": "^2.6.0",
     "@types/react": "^18.0.12",
     "@types/react-dom": "^18.0.5",
     "@typescript-eslint/eslint-plugin": "^4.8.2",
     "@typescript-eslint/parser": "^4.8.2",
+    "api-spec-converter": "^2.12.0",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-functional": "^3.1.0",
@@ -23,8 +27,11 @@
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-sonarjs": "^0.5.0",
     "italia-tslint-rules": "^1.1.3",
+    "npm-run-all": "^4.1.5",
     "parcel": "^2.6.0",
     "process": "^0.11.10",
+    "react-scripts": "^5.0.1",
+    "shx": "^0.3.4",
     "tslint": "^5.1.0",
     "typescript": "^4.1.2"
   },
@@ -36,7 +43,7 @@
     "@mui/lab": "^5.0.0-alpha.86",
     "@mui/material": "^5.8.4",
     "@pagopa/mui-italia": "^0.6.26",
-    "@pagopa/openapi-codegen-ts": "^10.0.7",
+    "@pagopa/openapi-codegen-ts": "^11",
     "i18next": "^21.8.9",
     "i18next-browser-languagedetector": "^6.1.4",
     "react": "^18.1.0",

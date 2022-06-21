@@ -9,7 +9,13 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Channel, PollingResponseEntity } from "../models/transactions";
+import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
+import {
+  getCurrentLocation,
+  getRequestId,
+  navigate,
+} from "../utils/navigation";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -22,73 +28,66 @@ export default function Index() {
   const { t } = useTranslation();
   const [info, setInfo] = React.useState<PollingResponseEntity>();
   const [loading] = React.useState<boolean>(
-    window.location.href.includes("?urlRedirect=")
+    getCurrentLocation().includes("?urlRedirect=")
   );
+
+  const requestId = getRequestId();
   const i18nInterpolation = { appName: "Postepay" };
   const i18nTitle = loading ? "index.loadingTitle" : "index.title";
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
-  React.useEffect(() => {
-    const requestId = window.location.href.includes("?urlRedirect=")
-      ? window.location.href
-          .split("?urlRedirect=")[0]
-          .split("/")
-          .pop()
-      : window.location.href.split("/").pop();
+  const onError = (e: string) => {
+    console.log(e);
 
-    const pollingInterval = setInterval(() => {
-      fetch(`${getConfig().API_HOST}/${requestId}`)
-        .then((resp) => resp.json())
-        .then((data: PollingResponseEntity) => {
-          setInfo(data);
-          data.authOutcome && window.location.assign(data.clientResponseUrl);
-        })
-        .catch(() => {
-          let mockData: PollingResponseEntity = {
-            channel: "APP",
-            urlRedirect: "test",
-            clientResponseUrl: "https://google.com",
-            logoResourcePath:
-              "https://www.poste.it/img/1476453799105/icona-logo-app-postepay.png",
-            authOutcome: null,
-            error: null,
-          };
-          setTimeout(() => {
-            mockData = {
-              ...mockData,
-              authOutcome: "Ok",
-            };
-            setInfo(mockData);
-            mockData.authOutcome &&
-              window.location.assign(mockData.clientResponseUrl);
-          }, 5000);
-          setInfo(mockData);
-          mockData.authOutcome &&
-            window.location.assign(mockData.clientResponseUrl);
-          setTimeout(() => clearInterval(pollingInterval), 20000);
-        });
-    }, getConfig().API_GET_INTERVAL);
+    // mocking api resp, delete this in dev env
+    let mockData: PollingResponseEntity = {
+      channel: "APP",
+      urlRedirect: "test",
+      clientResponseUrl: "00001",
+      logoResourcePath:
+        "https://www.poste.it/img/1476453799105/icona-logo-app-postepay.png",
+      authOutcome: null,
+      error: null,
+    };
+    setTimeout(() => {
+      mockData = {
+        ...mockData,
+        authOutcome: "Ok",
+      };
+      setInfo(mockData);
+    }, 10000);
+    setInfo(mockData);
+  };
+
+  React.useEffect(() => {
+    transactionFetch(
+      `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
+      setInfo,
+      onError
+    );
+    transactionPolling(
+      `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
+      setInfo,
+      onError
+    );
   }, []);
 
   React.useEffect(() => {
     if (info?.urlRedirect && info.channel === Channel.WEB) {
-      window.location.assign(info.urlRedirect);
+      navigate(info.urlRedirect);
     }
     if (
       info?.urlRedirect &&
       info.channel === Channel.APP &&
-      !window.location.href.includes("?urlRedirect=")
+      !getCurrentLocation().includes("?urlRedirect=")
     ) {
-      window.location.assign(
-        window.location.href + "?urlRedirect=" + info?.urlRedirect!
-      );
+      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
     }
+    info?.authOutcome && navigate(info?.clientResponseUrl);
   }, [info]);
 
   const handleClick = React.useCallback(() => {
-    window.location.assign(
-      window.location.href + "?urlRedirect=" + info?.urlRedirect!
-    );
+    navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
   }, [info]);
 
   return (

@@ -6,9 +6,7 @@ export function transactionFetch(
   onResponse: (data: PollingResponseEntity) => void,
   onError: (e: string) => void
 ) {
-  fetch(url, {
-    mode: "no-cors",
-  })
+  fetch(url)
     .then((resp) => {
       if (resp.ok) {
         return resp.json();
@@ -17,7 +15,7 @@ export function transactionFetch(
       throw new Error("Generic Server Error");
     })
     .then(onResponse)
-    .catch(onError);
+    .catch((e: Error) => onError(e.message));
 }
 
 export function transactionPolling(
@@ -26,9 +24,7 @@ export function transactionPolling(
   onError: (e: string) => void
 ) {
   const interval = setInterval(() => {
-    fetch(url, {
-      mode: "no-cors",
-    })
+    fetch(url)
       .then((resp) => {
         if (resp.ok) {
           return resp.json();
@@ -37,9 +33,9 @@ export function transactionPolling(
         throw new Error("Generic Server Error");
       })
       .then(onResponse)
-      .catch((e) => {
+      .catch((e: Error) => {
         //clearInterval(interval);
-        onError(e);
+        onError(e.message);
       });
   }, getConfig().API_GET_INTERVAL);
   setTimeout(() => clearInterval(interval), 20000); // only for test in local purpose, delete this in dev env

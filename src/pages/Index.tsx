@@ -43,7 +43,7 @@ export default function Index() {
     let mockData: PollingResponseEntity = {
       channel: "APP",
       urlRedirect: "test",
-      clientResponseUrl: "00001",
+      clientResponseUrl: "87885a88-680f-4478-b5ed-6c7d15c96d40",
       logoResourcePath:
         "https://www.poste.it/img/1476453799105/icona-logo-app-postepay.png",
       authOutcome: null,
@@ -111,6 +111,7 @@ export default function Index() {
           </Typography>
           {!loading && (
             <Button
+              id="gateway-submit"
               type="button"
               onClick={handleClick}
               variant="outlined"

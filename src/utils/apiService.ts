@@ -78,5 +78,5 @@ export async function webviewPolling(
       },
       response => async () => onResponse(response as PollingResponseEntity)
     )
-  );
+  )();
 }

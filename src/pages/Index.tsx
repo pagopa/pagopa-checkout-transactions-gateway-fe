@@ -1,5 +1,8 @@
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 import {
   Box,
   Button,
@@ -11,11 +14,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Channel, PollingResponseEntity } from "../models/transactions";
-import {
-  transactionFetch,
-  transactionPolling,
-  webviewPolling
-} from "../utils/apiService";
+import { transactionFetch, transactionPolling, webviewGetTransaction, webviewPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
 import {
   getCurrentLocation,
@@ -44,54 +43,41 @@ export default function Index() {
 
   const onError = (e: string) => {
     //  TO DO Error handling
-
-    // mocking api resp, delete this in dev env
-    // eslint-disable-next-line functional/no-let
-    let mockData: PollingResponseEntity = {
-      channel: "APP",
-      urlRedirect: "test",
-      clientResponseUrl: "87885a88-680f-4478-b5ed-6c7d15c96d40",
-      logoResourcePath:
-        "https://www.poste.it/img/1476453799105/icona-logo-app-postepay.png",
-      authOutcome: null,
-      error: null
-    };
-    setTimeout(() => {
-      mockData = {
-        ...mockData,
-        authOutcome: "Ok"
-      };
-      setInfo(mockData);
-    }, 10000);
-    setInfo(mockData);
+    // eslint-disable-next-line no-console
+    console.log(e);
   };
 
   React.useEffect(() => {
-    void webviewPolling(requestId!, setInfo, onError);
+    void webviewGetTransaction(requestId!, setInfo, onError);
+    webviewPolling(requestId!, setInfo, onError);
     // transactionFetch(
-    //   `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
+    //   `${getConfig().API_HOST}/${
+    //     getConfig().API_BASEPATH
+    //   }/request-payments/postepay/${requestId}`,
     //   setInfo,
     //   onError
     // );
     // transactionPolling(
-    //   `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
+    //   `${getConfig().API_HOST}/${
+    //     getConfig().API_BASEPATH
+    //   }/request-payments/postepay/${requestId}`,
     //   setInfo,
     //   onError
     // );
   }, []);
 
   React.useEffect(() => {
-    // if (info?.urlRedirect && info.channel === Channel.WEB) {
-    //   navigate(info.urlRedirect);
-    // }
-    // if (
-    //   info?.urlRedirect &&
-    //   info.channel === Channel.APP &&
-    //   !getCurrentLocation().includes("?urlRedirect=")
-    // ) {
-    //   navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
-    // }
-    // info?.authOutcome && navigate(info?.clientResponseUrl);
+    if (info?.urlRedirect && info.channel === Channel.WEB) {
+      navigate(info.urlRedirect);
+    }
+    if (
+      info?.urlRedirect &&
+      info.channel === Channel.APP &&
+      !getCurrentLocation().includes("?urlRedirect=")
+    ) {
+      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
+    }
+    info?.authOutcome && navigate(info?.clientResponseUrl);
   }, [info]);
 
   const handleClick = React.useCallback(() => {
@@ -104,12 +90,14 @@ export default function Index() {
         <>
           {loading ? (
             <CircularProgress />
-          ) : (
+          ) : info?.logoResourcePath ? (
             <img
               src={info?.logoResourcePath}
               alt="Logo gestore"
               style={{ width: "59px", height: "59px" }}
             />
+          ) : (
+            <ImageNotSupportedIcon sx={{ width: "59px", height: "59px" }} />
           )}
           <Typography variant="h5" component="div" mt={6}>
             {t(i18nTitle, i18nInterpolation)}

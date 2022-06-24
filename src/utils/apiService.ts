@@ -28,7 +28,7 @@ export function transactionPolling(
   onResponse: (data: PollingResponseEntity) => void,
   onError: (e: string) => void
 ) {
-  const interval = setInterval(() => {
+  setInterval(() => {
     fetch(url)
       .then(resp => {
         if (resp.ok) {
@@ -43,10 +43,9 @@ export function transactionPolling(
         onError(e);
       });
   }, getConfig().API_GET_INTERVAL);
-  setTimeout(() => clearInterval(interval), 20000); // only for test in local purpose, delete this in dev env
 }
 
-export async function webviewPolling(
+export async function webviewGetTransaction(
   id: string,
   onResponse: (data: PollingResponseEntity) => void,
   onError: (e: string) => void
@@ -63,10 +62,10 @@ export async function webviewPolling(
           pipe(
             errorOrResponse,
             E.fold(
-              () => TE.left("Errors.generic"),
+              () => TE.left("Errors.response"),
               responseType =>
-                responseType.status === 200
-                  ? TE.left("Errors.generic")
+                responseType.status !== 200
+                  ? TE.left("Errors.status")
                   : TE.of(responseType.value)
             )
           )
@@ -79,4 +78,14 @@ export async function webviewPolling(
       response => async () => onResponse(response as PollingResponseEntity)
     )
   )();
+}
+
+export function webviewPolling(
+  id: string,
+  onResponse: (data: PollingResponseEntity) => void,
+  onError: (e: string) => void
+) {
+  setInterval(async () => {
+    await webviewGetTransaction(id, onResponse, onError);
+  }, getConfig().API_GET_INTERVAL);
 }

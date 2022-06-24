@@ -1,20 +1,26 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   Box,
   Button,
   CircularProgress,
   SxProps,
   Theme,
-  Typography,
+  Typography
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Channel, PollingResponseEntity } from "../models/transactions";
-import { transactionFetch, transactionPolling } from "../utils/apiService";
+import {
+  transactionFetch,
+  transactionPolling,
+  webviewPolling
+} from "../utils/apiService";
 import { getConfig } from "../utils/config";
 import {
   getCurrentLocation,
   getRequestId,
-  navigate,
+  navigate
 } from "../utils/navigation";
 
 const layoutStyle: SxProps<Theme> = {
@@ -22,7 +28,7 @@ const layoutStyle: SxProps<Theme> = {
   flexDirection: "column",
   justifyContent: "center",
   textAlign: "center",
-  alignItems: "center",
+  alignItems: "center"
 };
 export default function Index() {
   const { t } = useTranslation();
@@ -37,9 +43,10 @@ export default function Index() {
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
   const onError = (e: string) => {
-    console.log(e);
+    //  TO DO Error handling
 
     // mocking api resp, delete this in dev env
+    // eslint-disable-next-line functional/no-let
     let mockData: PollingResponseEntity = {
       channel: "APP",
       urlRedirect: "test",
@@ -47,12 +54,12 @@ export default function Index() {
       logoResourcePath:
         "https://www.poste.it/img/1476453799105/icona-logo-app-postepay.png",
       authOutcome: null,
-      error: null,
+      error: null
     };
     setTimeout(() => {
       mockData = {
         ...mockData,
-        authOutcome: "Ok",
+        authOutcome: "Ok"
       };
       setInfo(mockData);
     }, 10000);
@@ -60,30 +67,31 @@ export default function Index() {
   };
 
   React.useEffect(() => {
-    transactionFetch(
-      `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
-      setInfo,
-      onError
-    );
-    transactionPolling(
-      `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
-      setInfo,
-      onError
-    );
+    void webviewPolling(requestId!, setInfo, onError);
+    // transactionFetch(
+    //   `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
+    //   setInfo,
+    //   onError
+    // );
+    // transactionPolling(
+    //   `${getConfig().API_HOST}/request-payments/postepay/${requestId}`,
+    //   setInfo,
+    //   onError
+    // );
   }, []);
 
   React.useEffect(() => {
-    if (info?.urlRedirect && info.channel === Channel.WEB) {
-      navigate(info.urlRedirect);
-    }
-    if (
-      info?.urlRedirect &&
-      info.channel === Channel.APP &&
-      !getCurrentLocation().includes("?urlRedirect=")
-    ) {
-      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
-    }
-    info?.authOutcome && navigate(info?.clientResponseUrl);
+    // if (info?.urlRedirect && info.channel === Channel.WEB) {
+    //   navigate(info.urlRedirect);
+    // }
+    // if (
+    //   info?.urlRedirect &&
+    //   info.channel === Channel.APP &&
+    //   !getCurrentLocation().includes("?urlRedirect=")
+    // ) {
+    //   navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
+    // }
+    // info?.authOutcome && navigate(info?.clientResponseUrl);
   }, [info]);
 
   const handleClick = React.useCallback(() => {
@@ -118,7 +126,7 @@ export default function Index() {
               sx={{
                 width: "100%",
                 height: "100%",
-                minHeight: 45,
+                minHeight: 45
               }}
             >
               {t("index.submit", i18nInterpolation)}

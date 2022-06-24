@@ -4,8 +4,9 @@ export const TRANSLATIONS_IT = {
     loadingTitle: "Autorizzazione su app {{appName}} in corso...",
     body:
       "Conferma il pagamento sull'app {{appName}}. Al termina torna sull'app IO per completare l'operazione",
-    loadingBody: "Se l'hai già fatto, ti preghiamo di attendere ancora qualche secondo.",
-    submit: "Apri app {{appName}}",
+    loadingBody:
+      "Se l'hai già fatto, ti preghiamo di attendere ancora qualche secondo.",
+    submit: "Apri app {{appName}}"
   },
   loading: "caricamento"
 };

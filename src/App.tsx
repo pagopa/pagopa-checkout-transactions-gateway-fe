@@ -17,7 +17,7 @@ export function App() {
           flexDirection: "column",
           justifyContent: "space-between",
           height: "100vh",
-          bgcolor: theme.palette.background.default,
+          bgcolor: theme.palette.background.default
         }}
       >
         <Container
@@ -28,7 +28,7 @@ export function App() {
             flexGrow: 1,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center",
+            justifyContent: "center"
           }}
           maxWidth={"xs"}
         >

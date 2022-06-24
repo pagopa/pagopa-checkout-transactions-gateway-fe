@@ -1,4 +1,9 @@
+/* eslint-disable sonarjs/no-identical-functions */
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
+import * as TE from "fp-ts/TaskEither";
 import { PollingResponseEntity } from "../models/transactions";
+import { apiTransactionsClient } from "./api/client";
 import { getConfig } from "./config";
 
 export function transactionFetch(
@@ -7,7 +12,7 @@ export function transactionFetch(
   onError: (e: string) => void
 ) {
   fetch(url)
-    .then((resp) => {
+    .then(resp => {
       if (resp.ok) {
         return resp.json();
       }
@@ -15,7 +20,7 @@ export function transactionFetch(
       throw new Error("Generic Server Error");
     })
     .then(onResponse)
-    .catch((e: Error) => onError(e.message));
+    .catch(onError);
 }
 
 export function transactionPolling(
@@ -25,7 +30,7 @@ export function transactionPolling(
 ) {
   const interval = setInterval(() => {
     fetch(url)
-      .then((resp) => {
+      .then(resp => {
         if (resp.ok) {
           return resp.json();
         }
@@ -33,10 +38,45 @@ export function transactionPolling(
         throw new Error("Generic Server Error");
       })
       .then(onResponse)
-      .catch((e: Error) => {
-        //clearInterval(interval);
-        onError(e.message);
+      .catch(e => {
+        //  clearInterval(interval);
+        onError(e);
       });
   }, getConfig().API_GET_INTERVAL);
   setTimeout(() => clearInterval(interval), 20000); // only for test in local purpose, delete this in dev env
+}
+
+export async function webviewPolling(
+  id: string,
+  onResponse: (data: PollingResponseEntity) => void,
+  onError: (e: string) => void
+) {
+  void pipe(
+    pipe(
+      TE.tryCatch(
+        () => apiTransactionsClient.webviewPolling({ requestId: id }),
+        () => "Errors.generic"
+      ),
+      TE.fold(
+        err => TE.left(err),
+        errorOrResponse =>
+          pipe(
+            errorOrResponse,
+            E.fold(
+              () => TE.left("Errors.generic"),
+              responseType =>
+                responseType.status === 200
+                  ? TE.left("Errors.generic")
+                  : TE.of(responseType.value)
+            )
+          )
+      )
+    ),
+    TE.fold(
+      (e: string) => async () => {
+        onError(e);
+      },
+      response => async () => onResponse(response as PollingResponseEntity)
+    )
+  );
 }

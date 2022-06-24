@@ -1,6 +1,8 @@
+/* eslint-disable functional/immutable-data */
 export function getRequestId() {
   return window.location.href.includes("?urlRedirect=")
-    ? window.location.href
+    ? // eslint-disable-next-line functional/immutable-data
+      window.location.href
         .split("?urlRedirect=")[0]
         .split("/")
         .pop()

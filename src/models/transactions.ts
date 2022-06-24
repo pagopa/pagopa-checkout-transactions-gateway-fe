@@ -9,5 +9,5 @@ export interface PollingResponseEntity {
 
 export enum Channel {
   WEB = "WEB",
-  APP = "APP",
+  APP = "APP"
 }

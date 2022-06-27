@@ -14,7 +14,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Channel, PollingResponseEntity } from "../models/transactions";
-import { transactionFetch, transactionPolling, webviewGetTransaction, webviewPolling } from "../utils/apiService";
+import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
 import {
   getCurrentLocation,
@@ -48,22 +48,20 @@ export default function Index() {
   };
 
   React.useEffect(() => {
-    void webviewGetTransaction(requestId!, setInfo, onError);
-    webviewPolling(requestId!, setInfo, onError);
-    // transactionFetch(
-    //   `${getConfig().API_HOST}/${
-    //     getConfig().API_BASEPATH
-    //   }/request-payments/postepay/${requestId}`,
-    //   setInfo,
-    //   onError
-    // );
-    // transactionPolling(
-    //   `${getConfig().API_HOST}/${
-    //     getConfig().API_BASEPATH
-    //   }/request-payments/postepay/${requestId}`,
-    //   setInfo,
-    //   onError
-    // );
+    transactionFetch(
+      `${getConfig().API_HOST}/${
+        getConfig().API_BASEPATH
+      }/request-payments/postepay/${requestId}`,
+      setInfo,
+      onError
+    );
+    transactionPolling(
+      `${getConfig().API_HOST}/${
+        getConfig().API_BASEPATH
+      }/request-payments/postepay/${requestId}`,
+      setInfo,
+      onError
+    );
   }, []);
 
   React.useEffect(() => {

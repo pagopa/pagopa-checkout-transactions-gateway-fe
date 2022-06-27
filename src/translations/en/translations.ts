@@ -1,2 +1,1 @@
-export const TRANSLATIONS_EN = {
-};
+export const TRANSLATIONS_EN = {};

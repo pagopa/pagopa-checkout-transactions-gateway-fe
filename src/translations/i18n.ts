@@ -7,7 +7,7 @@ export const fallbackLang = "it";
 
 const DETECTION_OPTIONS = {
   order: ["querystring", "navigator"],
-  caches: [],
+  caches: []
 };
 
 void i18n
@@ -17,8 +17,8 @@ void i18n
     detection: DETECTION_OPTIONS,
     fallbackLng: fallbackLang,
     resources: {
-      ...lang,
-    },
+      ...lang
+    }
   });
 
 export default i18n;

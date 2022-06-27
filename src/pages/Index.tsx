@@ -1,7 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 import {
   Box,
@@ -73,13 +71,14 @@ export default function Index() {
       info.channel === Channel.APP &&
       !getCurrentLocation().includes("?urlRedirect=")
     ) {
-      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
+      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect);
     }
     info?.authOutcome && navigate(info?.clientResponseUrl);
   }, [info]);
 
   const handleClick = React.useCallback(() => {
-    navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect!);
+    info?.urlRedirect &&
+      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect);
   }, [info]);
 
   return (

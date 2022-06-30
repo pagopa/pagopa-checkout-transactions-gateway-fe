@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import ErrorModal from "../components/modals/ErrorModal";
 import { Channel, PollingResponseEntity } from "../models/transactions";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
@@ -33,6 +34,7 @@ export default function Index() {
   const [loading] = React.useState<boolean>(
     getCurrentLocation().includes("?urlRedirect=")
   );
+  const [errorModalOpen, setErrorModalOpen] = React.useState(false);
 
   const requestId = getRequestId();
   const i18nInterpolation = { appName: "Postepay" };
@@ -40,9 +42,7 @@ export default function Index() {
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
   const onError = (e: string) => {
-    //  TO DO Error handling
-    // eslint-disable-next-line no-console
-    console.log(e);
+    setErrorModalOpen(true);
   };
 
   React.useEffect(() => {
@@ -121,6 +121,12 @@ export default function Index() {
       ) : (
         <CircularProgress />
       )}
+      <ErrorModal
+        open={errorModalOpen}
+        onClose={() => {
+          setErrorModalOpen(false);
+        }}
+      />
     </Box>
   );
 }

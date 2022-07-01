@@ -9,9 +9,10 @@
     "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx",
     "lint-autofix": "eslint . -c .eslintrc.js --ext .ts,.tsx --fix",
     "prebuild": "npm-run-all generate type-check lint",
+    "build": "rimraf .cache && rimraf dist && parcel build src/index.html",
     "start": "parcel src/index.html",
     "generate": "npm-run-all generate:*",
-    "generate:gateway-transactions-api": "rimraf generated/definitions/gateway-transactions-api && shx mkdir -p generated/definitions/gateway-transactions-api && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/fix-ptg-policy/src/api/payment_transactions_gateway_api/external/v1/_openapi.json.tpl --no-strict --out-dir ./generated/definitions/gateway-transactions-api --request-types --response-decoders --client"
+    "generate:gateway-transactions-api": "rimraf generated/definitions/gateway-transactions-api && shx mkdir -p generated/definitions/gateway-transactions-api && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/api/payment_transactions_gateway_api/external/v1/_openapi.json.tpl --no-strict --out-dir ./generated/definitions/gateway-transactions-api --request-types --response-decoders --client"
   },
   "devDependencies": {
     "@pagopa/openapi-codegen-ts": "^11",

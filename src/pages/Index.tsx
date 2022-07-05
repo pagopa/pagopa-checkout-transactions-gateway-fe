@@ -17,6 +17,7 @@ import { getConfig } from "../utils/config";
 import {
   getCurrentLocation,
   getRequestId,
+  getUrlRedirect,
   navigate
 } from "../utils/navigation";
 
@@ -30,9 +31,7 @@ const layoutStyle: SxProps<Theme> = {
 export default function Index() {
   const { t } = useTranslation();
   const [info, setInfo] = React.useState<PollingResponseEntity>();
-  const [loading] = React.useState<boolean>(
-    getCurrentLocation().includes("?urlRedirect=")
-  );
+  const [loading] = React.useState<boolean>(!!getUrlRedirect());
 
   const requestId = getRequestId();
   const i18nInterpolation = { appName: "Postepay" };
@@ -69,16 +68,16 @@ export default function Index() {
     if (
       info?.urlRedirect &&
       info.channel === Channel.APP &&
-      !getCurrentLocation().includes("?urlRedirect=")
+      !getUrlRedirect()
     ) {
-      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect);
+      navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
     }
     info?.authOutcome && navigate(info?.clientResponseUrl);
   }, [info]);
 
   const handleClick = React.useCallback(() => {
     info?.urlRedirect &&
-      navigate(getCurrentLocation() + "?urlRedirect=" + info?.urlRedirect);
+      navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
   }, [info]);
 
   return (

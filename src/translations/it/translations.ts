@@ -7,5 +7,10 @@ export const TRANSLATIONS_IT = {
       "Se l'hai già fatto, ti preghiamo di attendere ancora qualche secondo.",
     submit: "Apri app {{appName}}"
   },
-  loading: "caricamento"
+  errors: {
+    title: "Spiacenti, si è verificato un errore imprevisto",
+    body: "Riprova tra qualche minuto"
+  },
+  loading: "caricamento",
+  close: "Chiudi"
 };

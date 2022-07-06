@@ -40,7 +40,7 @@ export default function Index() {
   const i18nTitle = loading ? "index.loadingTitle" : "index.title";
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
-  const onError = (e: string) => {
+  const onError = (_e: string) => {
     setErrorModalOpen(true);
   };
 

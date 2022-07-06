@@ -74,7 +74,7 @@ stages:
               gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
 
           - script: |
-              API_HOST=https://api.dev.platform.pagopa.it yarn build
+              API_HOST=https://api.dev.platform.pagopa.it API_BASEPATH=/payment-transactions-gateway/external/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
             displayName: 'Build'
 
           - publish: $(System.DefaultWorkingDirectory)/dist

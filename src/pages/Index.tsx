@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import ErrorModal from "../components/modals/ErrorModal";
 import { Channel, PollingResponseEntity } from "../models/transactions";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
@@ -31,6 +32,7 @@ const layoutStyle: SxProps<Theme> = {
 export default function Index() {
   const { t } = useTranslation();
   const [info, setInfo] = React.useState<PollingResponseEntity>();
+  const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [loading] = React.useState<boolean>(!!getUrlRedirect());
 
   const requestId = getRequestId();
@@ -38,10 +40,8 @@ export default function Index() {
   const i18nTitle = loading ? "index.loadingTitle" : "index.title";
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
-  const onError = (e: string) => {
-    //  TO DO Error handling
-    // eslint-disable-next-line no-console
-    console.log(e);
+  const onError = (_e: string) => {
+    setErrorModalOpen(true);
   };
 
   React.useEffect(() => {
@@ -120,6 +120,12 @@ export default function Index() {
       ) : (
         <CircularProgress />
       )}
+      <ErrorModal
+        open={errorModalOpen}
+        onClose={() => {
+          setErrorModalOpen(false);
+        }}
+      />
     </Box>
   );
 }

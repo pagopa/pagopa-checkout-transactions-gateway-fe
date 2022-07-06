@@ -74,11 +74,7 @@ stages:
               gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
 
           - script: |
-              export API_HOST=https://api.dev.platform.pagopa.it
-            displayName: 'Set env params'
-
-          - script: |
-              yarn build
+              API_HOST=https://api.dev.platform.pagopa.it yarn build
             displayName: 'Build'
 
           - publish: $(System.DefaultWorkingDirectory)/dist

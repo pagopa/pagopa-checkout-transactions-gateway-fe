@@ -5,8 +5,8 @@ const lang: Languages = {
   it: {
     label: "Italiano",
     lang: "it-IT",
-    translation: TRANSLATIONS_IT,
-  },
+    translation: TRANSLATIONS_IT
+  }
   /*
   en: {
     label: "English",

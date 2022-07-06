@@ -13,7 +13,8 @@ const fetchWithTimeout = toFetch(
   setFetchTimeout(getConfig().API_TIMEOUT as Millisecond, abortableFetch)
 );
 // tslint:disable-next-line: no-any
-const fetchApi: typeof fetchWithTimeout = (fetch as any) as typeof fetchWithTimeout;
+const fetchApi: typeof fetchWithTimeout =
+  fetch as any as typeof fetchWithTimeout;
 
 export const apiTransactionsClient = createClient({
   baseUrl: getConfig().API_HOST,

@@ -1,12 +1,14 @@
 /* eslint-disable functional/immutable-data */
 export function getRequestId() {
-  return window.location.href.includes("?urlRedirect=")
-    ? // eslint-disable-next-line functional/immutable-data
-      window.location.href
-        .split("?urlRedirect=")[0]
-        .split("/")
-        .pop()
-    : window.location.href.split("/").pop();
+  const url = new URL(window.location.href);
+  const search = new URLSearchParams(url.search);
+  return search.get("requestId");
+}
+
+export function getUrlRedirect() {
+  const url = new URL(window.location.href);
+  const search = new URLSearchParams(url.search);
+  return search.get("urlRedirect");
 }
 
 export function getCurrentLocation() {

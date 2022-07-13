@@ -17,6 +17,7 @@ import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
 import {
   getCurrentLocation,
+  getPaymentGateway,
   getRequestId,
   getUrlRedirect,
   navigate
@@ -36,7 +37,12 @@ export default function Index() {
   const [loading] = React.useState<boolean>(!!getUrlRedirect());
 
   const requestId = getRequestId();
-  const i18nInterpolation = { appName: "Postepay" };
+  const paymentGateway = getPaymentGateway() || "postepay";
+  const i18nInterpolation = {
+    appName: `${paymentGateway.charAt(0).toUpperCase()}${paymentGateway.slice(
+      1
+    )}`
+  };
   const i18nTitle = loading ? "index.loadingTitle" : "index.title";
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
@@ -48,14 +54,14 @@ export default function Index() {
     transactionFetch(
       `${getConfig().API_HOST}/${
         getConfig().API_BASEPATH
-      }/request-payments/postepay/${requestId}`,
+      }/request-payments/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );
     transactionPolling(
       `${getConfig().API_HOST}/${
         getConfig().API_BASEPATH
-      }/request-payments/postepay/${requestId}`,
+      }/request-payments/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );

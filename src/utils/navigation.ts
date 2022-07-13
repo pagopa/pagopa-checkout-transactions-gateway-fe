@@ -5,6 +5,12 @@ export function getRequestId() {
   return search.get("requestId");
 }
 
+export function getPaymentGateway() {
+  const url = new URL(window.location.href);
+  const search = new URLSearchParams(url.search);
+  return search.get("paymentGateway");
+}
+
 export function getUrlRedirect() {
   const url = new URL(window.location.href);
   const search = new URLSearchParams(url.search);

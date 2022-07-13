@@ -1,20 +1,8 @@
 /* eslint-disable functional/immutable-data */
-export function getRequestId() {
+export function getQueryParam(query: string) {
   const url = new URL(window.location.href);
   const search = new URLSearchParams(url.search);
-  return search.get("requestId");
-}
-
-export function getPaymentGateway() {
-  const url = new URL(window.location.href);
-  const search = new URLSearchParams(url.search);
-  return search.get("paymentGateway");
-}
-
-export function getUrlRedirect() {
-  const url = new URL(window.location.href);
-  const search = new URLSearchParams(url.search);
-  return search.get("urlRedirect");
+  return search.get(query);
 }
 
 export function getCurrentLocation() {

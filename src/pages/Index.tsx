@@ -17,9 +17,7 @@ import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
 import {
   getCurrentLocation,
-  getPaymentGateway,
-  getRequestId,
-  getUrlRedirect,
+  getQueryParam,
   navigate
 } from "../utils/navigation";
 
@@ -34,10 +32,10 @@ export default function Index() {
   const { t } = useTranslation();
   const [info, setInfo] = React.useState<PollingResponseEntity>();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
-  const [loading] = React.useState<boolean>(!!getUrlRedirect());
+  const [loading] = React.useState<boolean>(!!getQueryParam("urlRedirect"));
 
-  const requestId = getRequestId();
-  const paymentGateway = getPaymentGateway() || "postepay";
+  const requestId = getQueryParam("requestId");
+  const paymentGateway = getQueryParam("paymentGateway") || "postepay";
   const i18nInterpolation = {
     appName: `${paymentGateway.charAt(0).toUpperCase()}${paymentGateway.slice(
       1
@@ -74,7 +72,7 @@ export default function Index() {
     if (
       info?.urlRedirect &&
       info.channel === Channel.APP &&
-      !getUrlRedirect()
+      !getQueryParam("urlRedirect")
     ) {
       navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
     }

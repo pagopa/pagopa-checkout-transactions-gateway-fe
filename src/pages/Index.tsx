@@ -17,8 +17,7 @@ import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
 import {
   getCurrentLocation,
-  getRequestId,
-  getUrlRedirect,
+  getQueryParam,
   navigate
 } from "../utils/navigation";
 
@@ -33,10 +32,15 @@ export default function Index() {
   const { t } = useTranslation();
   const [info, setInfo] = React.useState<PollingResponseEntity>();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
-  const [loading] = React.useState<boolean>(!!getUrlRedirect());
+  const [loading] = React.useState<boolean>(!!getQueryParam("urlRedirect"));
 
-  const requestId = getRequestId();
-  const i18nInterpolation = { appName: "Postepay" };
+  const requestId = getQueryParam("requestId");
+  const paymentGateway = getQueryParam("paymentGateway") || "postepay";
+  const i18nInterpolation = {
+    appName: `${paymentGateway.charAt(0).toUpperCase()}${paymentGateway.slice(
+      1
+    )}`
+  };
   const i18nTitle = loading ? "index.loadingTitle" : "index.title";
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
@@ -48,14 +52,14 @@ export default function Index() {
     transactionFetch(
       `${getConfig().API_HOST}/${
         getConfig().API_BASEPATH
-      }/request-payments/postepay/${requestId}`,
+      }/request-payments/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );
     transactionPolling(
       `${getConfig().API_HOST}/${
         getConfig().API_BASEPATH
-      }/request-payments/postepay/${requestId}`,
+      }/request-payments/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );
@@ -68,7 +72,7 @@ export default function Index() {
     if (
       info?.urlRedirect &&
       info.channel === Channel.APP &&
-      !getUrlRedirect()
+      !getQueryParam("urlRedirect")
     ) {
       navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
     }

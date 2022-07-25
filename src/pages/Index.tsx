@@ -80,8 +80,7 @@ export default function Index() {
   }, [info]);
 
   const handleClick = React.useCallback(() => {
-    info?.urlRedirect &&
-      navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
+    info?.urlRedirect && navigate(info?.urlRedirect);
   }, [info]);
 
   return (

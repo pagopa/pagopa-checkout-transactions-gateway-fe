@@ -105,7 +105,7 @@ export default function Index() {
           <Typography variant="body1" component="div" my={2}>
             {t(i18nBody, i18nInterpolation)}
           </Typography>
-          {!loading && (
+          {loading && (
             <Button
               id="gateway-submit"
               type="button"

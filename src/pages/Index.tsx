@@ -80,8 +80,7 @@ export default function Index() {
   }, [info]);
 
   const handleClick = React.useCallback(() => {
-    info?.urlRedirect &&
-      navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
+    info?.urlRedirect && window.open(info?.urlRedirect, "_blank")?.focus();
   }, [info]);
 
   return (
@@ -105,7 +104,7 @@ export default function Index() {
           <Typography variant="body1" component="div" my={2}>
             {t(i18nBody, i18nInterpolation)}
           </Typography>
-          {!loading && (
+          {loading && (
             <Button
               id="gateway-submit"
               type="button"

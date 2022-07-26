@@ -80,7 +80,7 @@ export default function Index() {
   }, [info]);
 
   const handleClick = React.useCallback(() => {
-    info?.urlRedirect && navigate(info?.urlRedirect);
+    info?.urlRedirect && window.open(info?.urlRedirect, "_blank")?.focus();
   }, [info]);
 
   return (

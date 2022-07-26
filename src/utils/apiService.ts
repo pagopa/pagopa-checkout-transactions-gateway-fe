@@ -8,7 +8,7 @@ export function transactionFetch(
   onError: (e: string) => void
 ) {
   fetch(url)
-    .then(resp => {
+    .then((resp) => {
       if (resp.ok) {
         return resp.json();
       }
@@ -26,7 +26,7 @@ export function transactionPolling(
 ) {
   setInterval(() => {
     fetch(url)
-      .then(resp => {
+      .then((resp) => {
         if (resp.ok) {
           return resp.json();
         }
@@ -34,7 +34,7 @@ export function transactionPolling(
         throw new Error("Generic Server Error");
       })
       .then(onResponse)
-      .catch(e => {
+      .catch((e) => {
         //  clearInterval(interval);
         onError(e);
       });

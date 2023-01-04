@@ -1,9 +1,12 @@
-import { Container, createTheme, ThemeProvider } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Box } from "@mui/system";
 import { theme } from "@pagopa/mui-italia";
 import React from "react";
-import Index from "./pages/Index";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Layout } from "./components/modals/commons/Layout";
+import Postepay from "./pages/Postepay";
+import XPay from "./pages/XPay";
+import { GatewayRoutes } from "./routes/routes";
 import "./translations/i18n";
 
 export function App() {
@@ -11,30 +14,17 @@ export function App() {
   return (
     <ThemeProvider theme={transactionsTheme}>
       <CssBaseline />
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          height: "100vh",
-          bgcolor: theme.palette.background.default
-        }}
-      >
-        <Container
-          sx={{
-            p: { xs: 0 },
-            pl: { xs: 7, sm: 6, md: 0 },
-            pr: { xs: 7, sm: 6, md: 0 },
-            flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center"
-          }}
-          maxWidth={"xs"}
-        >
-          <Index />
-        </Container>
-      </Box>
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path={"/" + GatewayRoutes.POSTEPAY} element={<Postepay />} />
+            <Route
+              path={"/" + GatewayRoutes.XPAY + "/:id"}
+              element={<XPay />}
+            />
+          </Routes>
+        </Layout>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

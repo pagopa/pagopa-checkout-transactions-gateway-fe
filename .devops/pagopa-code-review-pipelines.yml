@@ -68,7 +68,7 @@ stages:
   - stage: E2E_Tests
     pool:
       vmImage: 'ubuntu-latest'
-    dependsOn: Setup_Project
+    dependsOn: Build
     jobs:
       - job: e2e_tests
         steps:

@@ -64,3 +64,27 @@ stages:
             env:
               DANGER_GITHUB_API_TOKEN: '$(DANGER_GITHUB_API_TOKEN)'
             displayName: 'Danger CI'
+  
+  - stage: E2E_Tests
+    pool:
+      vmImage: 'ubuntu-latest'
+    dependsOn: Setup_Project
+    jobs:
+      - job: e2e_tests
+        steps:
+          - script: |
+             docker build -t ui_test test/e2e
+            displayName: 'Build test image'
+          - script: |
+              docker run --name=ui_test ui_test
+            displayName: 'Run UI test container'
+            continueOnError: true 
+          - script: |
+              docker cp ui_test:/puppeteer/test_reports  test_reports
+            displayName: 'Copy test result'
+            continueOnError: true 
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml' 
+              searchFolder: '$(System.DefaultWorkingDirectory)'

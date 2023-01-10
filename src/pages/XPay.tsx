@@ -35,7 +35,7 @@ export default function XPay() {
   };
 
   const onResponse = (resp: XPayResponse) => {
-    if (!resp.html) {
+    if (resp.status !== "CREATED") {
       setPolling(true);
       setErrorModalOpen(true);
       transactionPolling(

@@ -79,6 +79,9 @@ stages:
              nohup yarn start &
             displayName: 'Start local transaction gateway FE'
           - script: |
+              while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:1234)" != "200" ]]; do sleep 5; done
+            displayName: 'Wait for FE to be up and running'
+          - script: |
              docker build -t ui_test test/e2e
             displayName: 'Build test image'
           - script: |

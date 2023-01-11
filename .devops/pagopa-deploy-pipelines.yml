@@ -107,6 +107,40 @@ stages:
               inlineScript: |
                 call az cdn endpoint purge -g pagopa-d-checkout-fe-rg -n pagopa-d-checkout-cdn-endpoint --profile-name pagopa-d-checkout-cdn-profile --content-paths "/*"
 
+  - stage: E2E_Tests_DEV
+    dependsOn:
+      - Deploy_DEV_pagoPA
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: end_to_end_tests_dev
+        steps:
+          - checkout: checkoutTransactionGatewayTests
+          - script : |
+             echo "##[debug] Change placeholder ..."
+             cd test/e2e
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://dev.checkout.pagopa.it/," .env
+             sed -i "s,^WRONG_REQUEST_ID=.*$,WRONG_REQUEST_ID=75f5d7ce-ef83-4dd3-8fdc-5a736b138cf3," .env
+          - script: |
+             docker build -t ui_test test/e2e
+            displayName: 'Build test image'
+
+          - script: |
+              docker run --name=ui_test ui_test
+            displayName: 'Run UI test container'
+            continueOnError: true 
+
+          - script: |
+              docker cp ui_test:/puppeteer/test_reports  test_reports
+            displayName: 'Copy test result'
+            continueOnError: true 
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml' 
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
   # Create a relase
   # Activated when ONE OF these are met:
   # - is on branch main
@@ -202,4 +236,37 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 call az cdn endpoint purge -g pagopa-u-checkout-fe-rg -n pagopa-u-checkout-cdn-endpoint --profile-name pagopa-u-checkout-cdn-profile --content-paths "/*"
-               
+
+  - stage: E2E_Tests_UAT
+    dependsOn:
+      - Deploy_UAT_pagoPA
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: end_to_end_tests_uat
+        steps:
+          - checkout: checkoutTransactionGatewayTests
+          - script : |
+             echo "##[debug] Change placeholder ..."
+             cd test/e2e
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://uat.checkout.pagopa.it/," .env
+             sed -i "s,^WRONG_REQUEST_ID=.*$,WRONG_REQUEST_ID=75f5d7ce-ef83-4dd3-8fdc-5a736b138cf3," .env
+          - script: |
+             docker build -t ui_test test/e2e
+            displayName: 'Build test image'
+
+          - script: |
+              docker run --name=ui_test ui_test
+            displayName: 'Run UI test container'
+            continueOnError: true 
+
+          - script: |
+              docker cp ui_test:/puppeteer/test_reports  test_reports
+            displayName: 'Copy test result'
+            continueOnError: true 
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml' 
+              searchFolder: '$(System.DefaultWorkingDirectory)'

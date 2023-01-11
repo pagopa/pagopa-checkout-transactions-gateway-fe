@@ -17,7 +17,7 @@ describe('Transaction gateway FE xpay authorization tests', () => {
   });
 
   it('postepay - Should return 404 not found with wrong requestId', async () => {
-    const WRONG_REQUEST_ID = '75f5d7ce-ef83-4dd3-8fdc-5a736b138cf3';
+    const WRONG_REQUEST_ID = process.env.WRONG_REQUEST_ID;
 
     await page.goto(`${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/postepay?requestId=${WRONG_REQUEST_ID}`);
     const errorMessage = await getErrorMessage();

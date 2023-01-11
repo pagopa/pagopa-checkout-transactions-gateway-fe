@@ -78,7 +78,7 @@ stages:
           - script : |
              echo "##[debug] Change placeholder ..."
              cd test/e2e
-             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://pgs-fe:1234," .env
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234," .env
           - script: |
              nohup yarn start &
             displayName: 'Start local transaction gateway FE'
@@ -88,8 +88,8 @@ stages:
           - script: |
              docker build -t ui_test test/e2e
             displayName: 'Build test image'
-          - script: |
-              docker run --add-host=host.docker.internal:pgs-fe --name=ui_test ui_test
+          - script: | 
+              docker run --add-host=host.docker.internal:host-gateway --name=ui_test ui_test
             displayName: 'Run UI test container'
             continueOnError: true 
           - script: |

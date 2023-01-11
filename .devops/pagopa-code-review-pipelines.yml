@@ -73,7 +73,10 @@ stages:
       - job: e2e_tests
         steps:
           - script: |
-             yarn install && yarn start 
+             yarn install
+            displayName: 'Start yarn install'
+          - script: |
+             nohup yarn start &
             displayName: 'Start local transaction gateway FE'
           - script: |
              docker build -t ui_test test/e2e

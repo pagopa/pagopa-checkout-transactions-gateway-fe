@@ -11,6 +11,10 @@ export const TRANSLATIONS_IT = {
     title: "Spiacenti, si è verificato un errore imprevisto",
     body: "Riprova tra qualche minuto"
   },
+  polling: {
+    title: "Spiacenti, l’Ente sta impiegando più tempo del previsto...",
+    body: "Ti preghiamo di attendere un paio di minuti al massimo senza ricaricare la pagina nel frattempo."
+  },
   loading: "caricamento",
   close: "Chiudi"
 };

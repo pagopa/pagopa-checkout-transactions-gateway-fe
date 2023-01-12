@@ -1,4 +1,4 @@
-import { getErrorMessage } from './utils/utils';
+import { getNexiErrorMessage } from './utils/utils';
 
 describe('Transaction gateway FE xpay authorization tests', () => {
   /**
@@ -20,8 +20,8 @@ describe('Transaction gateway FE xpay authorization tests', () => {
     const WRONG_REQUEST_ID = process.env.WRONG_REQUEST_ID;
 
     await page.goto(`${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/xpay/${WRONG_REQUEST_ID}`);
-    const errorMessage = await getErrorMessage();
-
-    expect(errorMessage).toContain('Spiacenti, si è verificato un errore imprevisto');
+    // await waitForNexiAuthPage();
+    const errorMessage = await getNexiErrorMessage();
+    expect(errorMessage.trim()).toContain('Siamo spiacenti, si è verificato un errore.');
   });
 });

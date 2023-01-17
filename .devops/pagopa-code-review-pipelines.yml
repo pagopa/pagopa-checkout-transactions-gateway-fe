@@ -99,28 +99,35 @@ stages:
           - script: |
              yarn install
             displayName: 'Start yarn install'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script : |
              echo "##[debug] Change placeholder ..."
              ls && git rev-parse --abbrev-ref HEAD 
              cd test/e2e
              sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234," .env
+            displayName: 'Setup env for e2e tests'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |
              nohup yarn start &
             displayName: 'Start local transaction gateway FE'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |
               while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:1234)" != "200" ]]; do sleep 5; done
             displayName: 'Wait for FE to be up and running'
           - script: |
              docker build -t ui_test test/e2e
             displayName: 'Build test image'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: | 
               docker run --add-host=host.docker.internal:host-gateway --name=ui_test ui_test
             displayName: 'Run UI test container'
             continueOnError: true 
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |
               docker cp ui_test:/puppeteer/test_reports  test_reports
             displayName: 'Copy test result'
             continueOnError: true 
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
           - task: PublishTestResults@2
             inputs:
               testResultsFormat: 'JUnit'

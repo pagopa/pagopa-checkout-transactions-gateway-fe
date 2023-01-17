@@ -31,6 +31,5 @@ describe('Transaction gateway FE xpay authorization tests', () => {
     await page.goto(`${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/xpay/${CORRECT_REQUEST_ID}`);
 
     await waitForNexiAuthPage();
-    // await insertNexiOTP();
   });
 });

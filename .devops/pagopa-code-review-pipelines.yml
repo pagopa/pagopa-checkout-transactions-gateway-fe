@@ -96,6 +96,7 @@ stages:
           - checkout: self
           - script: |
               cd pagopa-checkout-transactions-gateway-fe && git checkout $(SOURCE_BRANCH) && echo "[debug] current branch" && git rev-parse --abbrev-ref HEAD 
+            displayName: 'Restore source branch'
           - script: |
              yarn install
             displayName: 'Start yarn install'

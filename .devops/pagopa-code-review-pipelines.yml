@@ -94,7 +94,7 @@ stages:
           
           - checkout: self
           - script: |
-              echo "[debug]" && ls && git rev-parse --abbrev-ref HEAD
+              cd pagopa-checkout-transactions-gateway-fe && echo "[debug] current branch" && git rev-parse --abbrev-ref HEAD
           - script: |
              yarn install
             displayName: 'Start yarn install'

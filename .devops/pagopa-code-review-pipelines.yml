@@ -91,8 +91,10 @@ stages:
               nohup yarn start &
             displayName: 'Start backend mock'
             workingDirectory: pagopa-checkout-be-mock
+          
           - checkout: self
-
+          - script: |
+              echo "[debug]" && ls && git rev-parse --abbrev-ref HEAD
           - script: |
              yarn install
             displayName: 'Start yarn install'

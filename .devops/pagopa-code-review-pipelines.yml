@@ -9,6 +9,7 @@
 variables:
   NODE_VERSION: '14.16.0'
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+  SOURCE_BRANCH: ${{ variables['Build.SourceBranchName'] }}
 
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
@@ -94,7 +95,7 @@ stages:
           
           - checkout: self
           - script: |
-              cd pagopa-checkout-transactions-gateway-fe && echo "[debug] current branch" && git rev-parse --abbrev-ref HEAD
+              cd pagopa-checkout-transactions-gateway-fe && git checkout $(sourceBranch) && echo "[debug] current branch" && git rev-parse --abbrev-ref HEAD 
           - script: |
              yarn install
             displayName: 'Start yarn install'

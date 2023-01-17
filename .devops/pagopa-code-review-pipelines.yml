@@ -45,7 +45,7 @@ stages:
         - template: templates/node-job-setup/template.yaml@pagopaCommons
 
         - script: |
-            yarn build
+            API_HOST=http://localhost:8080 API_BASEPATH=transaction-gateway API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
           displayName: 'Build'
   
   - stage: Static_Analysis
@@ -92,12 +92,6 @@ stages:
             displayName: 'Start backend mock'
             workingDirectory: pagopa-checkout-be-mock
           - checkout: self
-          
-          - script : |
-             echo "##[debug] Change FE placeholder ..."
-             cd test/e2e
-             sed -i "s,^API_HOST=.*$,API_HOST=http://localhost:8080," .env
-             sed -i "s,^API_BASEPATH=.*$,API_BASEPATH=transaction-gateway," .env
 
           - script: |
              yarn install

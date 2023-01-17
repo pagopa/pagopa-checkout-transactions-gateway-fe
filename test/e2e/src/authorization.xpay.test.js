@@ -10,7 +10,7 @@ describe('Transaction gateway FE xpay authorization tests', () => {
    * Increase default test timeout (5000ms)
    * to support entire payment flow
    */
-  jest.setTimeout(30000);
+  jest.setTimeout(180000);
 
   beforeEach(async () => {
     await page.setViewport({ width: 1200, height: 907 });

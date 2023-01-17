@@ -30,6 +30,11 @@ resources:
       name: pagopa/azure-pipeline-templates
       ref: refs/tags/v19
       endpoint: 'io-azure-devops-github-ro'
+    - repository: checkout-be-mock
+      type: github
+      name: pagopa/pagopa-checkout-be-mock
+      ref: master
+      endpoint: 'io-azure-devops-github-ro'
 
 stages:
   - stage: Build
@@ -72,6 +77,28 @@ stages:
     jobs:   
       - job: e2e_tests
         steps:
+          - checkout: checkout-be-mock
+
+          - script: cp env.example .env
+            workingDirectory: pagopa-checkout-be-mock
+            displayName: 'Setup env for mock'
+
+          - script: yarn install && yarn build
+            workingDirectory: pagopa-checkout-be-mock
+            displayName: 'Setup deps for mock'
+
+          - script: |
+              nohup yarn start &
+            displayName: 'Start backend mock'
+            workingDirectory: pagopa-checkout-be-mock
+          - checkout: self
+          
+          - script : |
+             echo "##[debug] Change FE placeholder ..."
+             cd test/e2e
+             sed -i "s,^API_HOST=.*$,API_HOST=http://localhost:8080," .env
+             sed -i "s,^API_BASEPATH=.*$,API_BASEPATH=transaction-gateway," .env
+
           - script: |
              yarn install
             displayName: 'Start yarn install'

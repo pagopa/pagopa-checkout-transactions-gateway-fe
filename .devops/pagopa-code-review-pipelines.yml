@@ -101,6 +101,7 @@ stages:
             displayName: 'Start yarn install'
           - script : |
              echo "##[debug] Change placeholder ..."
+             ls && git rev-parse --abbrev-ref HEAD 
              cd test/e2e
              sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234," .env
           - script: |

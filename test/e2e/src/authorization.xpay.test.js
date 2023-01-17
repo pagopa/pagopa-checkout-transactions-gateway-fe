@@ -28,6 +28,11 @@ describe('Transaction gateway FE xpay authorization tests', () => {
   it('xpay - Should successfully authorize with correct requestId', async () => {
     const CORRECT_REQUEST_ID = process.env.NEXI_CORRECT_REQUEST_ID;
 
+    // eslint-disable-next-line no-console
+    console.log(
+      `Test setup: id: ${CORRECT_REQUEST_ID}\nurl: ${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/xpay/${CORRECT_REQUEST_ID}`,
+    );
+
     await page.goto(`${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/xpay/${CORRECT_REQUEST_ID}`);
 
     await insertNexiOTP();

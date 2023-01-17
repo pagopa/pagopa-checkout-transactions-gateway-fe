@@ -10,12 +10,6 @@ export const getErrorMessage = async () => {
   return await page.evaluate(el => el.textContent, element);
 };
 
-export const waitForNexiAuthPage = async () => {
-  await page.waitForRequest(
-    request => request.url().includes('ecomm/ecomm/TdsMerchantServlet') && request.method() === 'GET',
-  );
-};
-
 export const getNexiErrorMessage = async () => {
   const errorDialBoxSelector = 'body > div > div > div > div > div.panel.panel-default > div';
   await page.waitForSelector(errorDialBoxSelector);
@@ -25,6 +19,10 @@ export const getNexiErrorMessage = async () => {
 
   const element = await page.$(errorText);
   return await page.evaluate(el => el.textContent, element);
+};
+
+export const waitForNexiAuthPage = async () => {
+  page.waitForRequest(request => request.url().includes('int-ecommerce.nexi.it') && request.method() === 'GET');
 };
 
 export const insertNexiOTP = async () => {

@@ -35,3 +35,6 @@ yarn-error.log*
 .parcel-cache
 
 test_reports/
+
+__azurite*.json
+__blobstorage__/

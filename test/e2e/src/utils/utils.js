@@ -26,3 +26,21 @@ export const getNexiErrorMessage = async () => {
   const element = await page.$(errorText);
   return await page.evaluate(el => el.textContent, element);
 };
+
+export const insertNexiOTP = async () => {
+  const otpInputBox = '#otipee';
+  const otpValue = '123456';
+  const continueBtn =
+    '#returnForm > div.row.rowDataProps.row-eq-height.white > div.col-xs-6.spaziaturaData.padData.noVerticalPad.noPadXS > button';
+
+  await page.waitForSelector(otpInputBox);
+  await page.click(otpInputBox);
+  await page.keyboard.type(otpValue);
+  await page.waitForSelector(continueBtn);
+  await page.click(continueBtn);
+};
+
+export const getPageResultXpay = async () => {
+  page.waitForNavigation({ waitUntil: 'networkidle2' });
+  return await page.evaluate(() => document.location.href);
+};

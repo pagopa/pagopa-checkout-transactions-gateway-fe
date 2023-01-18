@@ -10,6 +10,11 @@ import { getConfig } from "../utils/config";
 import { CcPaymentInfoAcceptedResponse } from "../generated/pgs/CcPaymentInfoAcceptedResponse";
 import { CcPaymentInfoAcsResponse } from "../generated/pgs/CcPaymentInfoAcsResponse";
 import { navigate } from "../utils/navigation";
+import {
+  createIFrame,
+  start3DS2AcsChallengeStep,
+  start3DS2MethodStep
+} from "../utils/iframe/iframe";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -34,8 +39,17 @@ export default function Vpos() {
     setErrorModalOpen(true);
   };
 
-  const handleMethod = (vposUrl: string) => {};
-  const handleChallenge = (vposUrl: string) => {};
+  const handleMethod = (vposUrl: string, methodData: any) => {
+    start3DS2MethodStep(
+      vposUrl,
+      methodData,
+      createIFrame(document.body, "myIdFrame", "myFrameName")
+    );
+  };
+
+  const handleChallenge = (vposUrl: string, params: any) =>
+    start3DS2AcsChallengeStep(vposUrl, params, document.body);
+
   const handleRedirect = (vposUrl: string) => {
     navigate(vposUrl);
   };
@@ -48,13 +62,13 @@ export default function Vpos() {
       resp.vposUrl !== undefined &&
       resp.responseType === "method"
     ) {
-      handleMethod(resp.vposUrl);
+      handleMethod(resp.vposUrl, null);
     } else if (
       resp.status === "CREATED" &&
       resp.vposUrl !== undefined &&
       resp.responseType === "challenge"
     ) {
-      handleChallenge(resp.vposUrl);
+      handleChallenge(resp.vposUrl, null);
     } else if (
       (resp.status === "AUTHORIZED" || resp.status === "DENIED") &&
       resp.vposUrl !== undefined

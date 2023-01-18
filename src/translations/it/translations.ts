@@ -12,8 +12,8 @@ export const TRANSLATIONS_IT = {
     body: "Riprova tra qualche minuto"
   },
   polling: {
-    title: "Spiacenti, l’Ente sta impiegando più tempo del previsto...",
-    body: "Ti preghiamo di attendere un paio di minuti al massimo senza ricaricare la pagina nel frattempo."
+    title: "In attesa di risposta dalla tua banca…",
+    body: "Ti stiamo mettendo in contatto con l'emittente della tua carta per autorizzare il pagamento."
   },
   loading: "caricamento",
   close: "Chiudi"

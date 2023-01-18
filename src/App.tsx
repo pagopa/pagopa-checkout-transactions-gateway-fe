@@ -8,6 +8,7 @@ import Postepay from "./pages/Postepay";
 import XPay from "./pages/XPay";
 import { GatewayRoutes } from "./routes/routes";
 import "./translations/i18n";
+import Vpos from "./pages/Vpos";
 
 export function App() {
   const transactionsTheme = createTheme({ ...theme });
@@ -21,6 +22,10 @@ export function App() {
             <Route
               path={"/" + GatewayRoutes.XPAY + "/:id"}
               element={<XPay />}
+            />
+            <Route
+              path={"/" + GatewayRoutes.VPOS + "/:id"}
+              element={<Vpos />}
             />
           </Routes>
         </Layout>

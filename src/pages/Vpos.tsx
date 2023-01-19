@@ -7,14 +7,17 @@ import ErrorModal from "../components/modals/ErrorModal";
 import { GatewayRoutes } from "../routes/routes";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfig } from "../utils/config";
-import { CcPaymentInfoAcceptedResponse } from "../generated/pgs/CcPaymentInfoAcceptedResponse";
-import { CcPaymentInfoAcsResponse } from "../generated/pgs/CcPaymentInfoAcsResponse";
 import { navigate } from "../utils/navigation";
 import {
   createIFrame,
   start3DS2AcsChallengeStep,
   start3DS2MethodStep
 } from "../utils/iframe/iframe";
+import {
+  PaymentRequestVposResponse,
+  ResponseTypeEnum,
+  StatusEnum
+} from "../generated/pgs/PaymentRequestVposResponse";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -47,33 +50,52 @@ export default function Vpos() {
     );
   };
 
-  const handleChallenge = (vposUrl: string, params: any) =>
+  const handleChallenge = (vposUrl: string, params: any) => {
     start3DS2AcsChallengeStep(vposUrl, params, document.body);
+  };
 
   const handleRedirect = (vposUrl: string) => {
     navigate(vposUrl);
   };
 
-  const onResponse = (
-    resp: CcPaymentInfoAcceptedResponse | CcPaymentInfoAcsResponse
-  ) => {
+  const handleResponse = (resp: PaymentRequestVposResponse) => {
     if (
-      resp.status === "CREATED" &&
+      resp.status === StatusEnum.CREATED &&
       resp.vposUrl !== undefined &&
-      resp.responseType === "method"
+      resp.responseType === ResponseTypeEnum.METHOD
     ) {
-      handleMethod(resp.vposUrl, null);
+      handleMethod(resp.vposUrl, {});
     } else if (
-      resp.status === "CREATED" &&
+      resp.status === StatusEnum.CREATED &&
       resp.vposUrl !== undefined &&
-      resp.responseType === "challenge"
+      resp.responseType === ResponseTypeEnum.CHALLENGE
     ) {
-      handleChallenge(resp.vposUrl, null);
+      handleChallenge(resp.vposUrl, {});
     } else if (
-      (resp.status === "AUTHORIZED" || resp.status === "DENIED") &&
+      (resp.status === StatusEnum.AUTHORIZED ||
+        resp.status === StatusEnum.DENIED) &&
       resp.vposUrl !== undefined
     ) {
       handleRedirect(resp.vposUrl);
+    }
+  };
+
+  const onResponse = (resp: PaymentRequestVposResponse) => {
+    // Not a final state -> continue polling
+    if (resp.status === StatusEnum.CREATED && resp.vposUrl === undefined) {
+      setErrorModalOpen(true);
+      setIntervalId(
+        transactionPolling(
+          `${getConfig().API_HOST}/request-payments/${
+            GatewayRoutes.VPOS
+          }/${id}`,
+          handleResponse,
+          onError
+        )
+      );
+    } else {
+      // Final state - handle response
+      handleResponse(resp);
     }
   };
 

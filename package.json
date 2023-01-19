@@ -11,8 +11,9 @@
     "prebuild": "npm-run-all type-check lint",
     "build": "rimraf .cache && rimraf dist && parcel build src/index.html --public-url /payment-transactions-gateway",
     "start": "parcel src/index.html",
+    "dev": "parcel --log-level verbose src/index.html",
     "generate": "npm-run-all -s generate:*",
-    "generate:pgs-be": "shx rm -rf src/generated/pgs && shx mkdir -p src/generated/pgs && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-payment-transactions-gateway/develop/api-specs/api_spec_PGS.yaml --no-strict --out-dir src/generated/pgs"
+    "generate:pgs-be": "shx rm -rf src/generated/pgs && shx mkdir -p src/generated/pgs && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/c39cea0b3ac4d992f4bda0026365b5a0eac96802/src/core/api/payment_transactions_gateway_api/external/v1/_openapi.json.tpl --no-strict --out-dir src/generated/pgs"
   },
   "devDependencies": {
     "@pagopa/openapi-codegen-ts": "^11",

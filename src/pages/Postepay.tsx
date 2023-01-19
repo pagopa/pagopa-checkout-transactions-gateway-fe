@@ -124,6 +124,8 @@ export default function Index() {
         <CircularProgress />
       )}
       <ErrorModal
+        title={t("errors.title")}
+        body={t("errors.body")}
         open={errorModalOpen}
         onClose={() => {
           setErrorModalOpen(false);

@@ -1,10 +1,9 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { PollingResponseEntity } from "../models/transactions";
 import { getConfig } from "./config";
 
 export function transactionFetch(
   url: string,
-  onResponse: (data: PollingResponseEntity) => void,
+  onResponse: (data: any) => void,
   onError: (e: string) => void
 ) {
   fetch(url)
@@ -21,10 +20,10 @@ export function transactionFetch(
 
 export function transactionPolling(
   url: string,
-  onResponse: (data: PollingResponseEntity) => void,
+  onResponse: (data: any) => void,
   onError: (e: string) => void
 ) {
-  setInterval(() => {
+  return setInterval(() => {
     fetch(url)
       .then((resp) => {
         if (resp.ok) {
@@ -34,9 +33,6 @@ export function transactionPolling(
         throw new Error("Generic Server Error");
       })
       .then(onResponse)
-      .catch((e) => {
-        //  clearInterval(interval);
-        onError(e);
-      });
+      .catch(onError);
   }, getConfig().API_GET_INTERVAL);
 }

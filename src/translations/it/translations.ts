@@ -11,6 +11,10 @@ export const TRANSLATIONS_IT = {
     title: "Spiacenti, si è verificato un errore imprevisto",
     body: "Riprova tra qualche minuto"
   },
+  polling: {
+    title: "In attesa di risposta dalla tua banca…",
+    body: "Ti stiamo mettendo in contatto con l'emittente della tua carta per autorizzare il pagamento."
+  },
   loading: "caricamento",
   close: "Chiudi"
 };

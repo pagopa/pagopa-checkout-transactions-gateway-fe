@@ -74,9 +74,9 @@ export default function Vpos() {
     } else if (
       (resp.status === StatusEnum.AUTHORIZED ||
         resp.status === StatusEnum.DENIED) &&
-      resp.vposUrl !== undefined
+      resp.clientReturnUrl !== undefined
     ) {
-      handleRedirect(resp.vposUrl);
+      handleRedirect(resp.clientReturnUrl);
     }
   };
 

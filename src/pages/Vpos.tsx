@@ -43,7 +43,6 @@ export default function Vpos() {
   };
 
   const handleMethod = (vposUrl: string, methodData: any) => {
-    console.log(`HandleMethod`);
     start3DS2MethodStep(
       vposUrl,
       methodData,
@@ -52,37 +51,26 @@ export default function Vpos() {
   };
 
   const handleChallenge = (vposUrl: string, params: any) => {
-    console.log(`handleChallenge`);
     start3DS2AcsChallengeStep(vposUrl, params, document.body);
   };
 
   const handleRedirect = (vposUrl: string) => {
-    console.log(`handleRedirect`);
     navigate(vposUrl);
-  };
-
-  const getResponseType = (responseType?: ResponseTypeEnum | string) => {
-    if (typeof responseType === "string" && responseType !== undefined) {
-      return responseType === "method"
-        ? ResponseTypeEnum.METHOD
-        : ResponseTypeEnum.CHALLENGE;
-    }
-    return responseType;
   };
 
   const handleResponse = (resp: PaymentRequestVposResponse) => {
     if (
       resp.status === StatusEnum.CREATED &&
       resp.vposUrl !== undefined &&
-      getResponseType(resp.responseType) === ResponseTypeEnum.METHOD
+      resp.responseType === ResponseTypeEnum.METHOD
     ) {
-      handleMethod(resp.vposUrl, null);
+      handleMethod(resp.vposUrl, {});
     } else if (
       resp.status === StatusEnum.CREATED &&
       resp.vposUrl !== undefined &&
-      getResponseType(resp.responseType) === ResponseTypeEnum.CHALLENGE
+      resp.responseType === ResponseTypeEnum.CHALLENGE
     ) {
-      handleChallenge(resp.vposUrl, null);
+      handleChallenge(resp.vposUrl, {});
     } else if (
       (resp.status === StatusEnum.AUTHORIZED ||
         resp.status === StatusEnum.DENIED) &&
@@ -94,7 +82,7 @@ export default function Vpos() {
 
   const onResponse = (resp: PaymentRequestVposResponse) => {
     // Not a final state -> continue polling
-    if (resp.status === StatusEnum.CREATED && resp.vposUrl !== undefined) {
+    if (resp.status === StatusEnum.CREATED && resp.vposUrl === undefined) {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(

@@ -26,6 +26,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .env
+!test/e2e/.env
 .env.development
 
 .cache
@@ -34,3 +35,6 @@ yarn-error.log*
 .parcel-cache
 
 test_reports/
+
+__azurite*.json
+__blobstorage__/

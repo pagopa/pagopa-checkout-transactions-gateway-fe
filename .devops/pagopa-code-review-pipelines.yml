@@ -9,6 +9,7 @@
 variables:
   NODE_VERSION: '14.16.0'
   YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+  SOURCE_BRANCH: ${{ variables['Build.SourceBranchName'] }}
 
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
@@ -30,6 +31,11 @@ resources:
       name: pagopa/azure-pipeline-templates
       ref: refs/tags/v19
       endpoint: 'io-azure-devops-github-ro'
+    - repository: checkout-be-mock
+      type: github
+      name: pagopa/pagopa-checkout-be-mock
+      ref: master
+      endpoint: 'io-azure-devops-github-ro'
 
 stages:
   - stage: Build
@@ -40,7 +46,7 @@ stages:
         - template: templates/node-job-setup/template.yaml@pagopaCommons
 
         - script: |
-            yarn build
+            API_HOST=http://localhost:8080 API_BASEPATH=transaction-gateway API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
           displayName: 'Build'
   
   - stage: Static_Analysis
@@ -64,3 +70,67 @@ stages:
             env:
               DANGER_GITHUB_API_TOKEN: '$(DANGER_GITHUB_API_TOKEN)'
             displayName: 'Danger CI'
+  
+  - stage: E2E_Tests
+    pool:
+      vmImage: 'ubuntu-latest'
+    dependsOn: Build
+    jobs:   
+      - job: e2e_tests
+        steps:
+          - checkout: checkout-be-mock
+
+          - script: cp env.example .env
+            workingDirectory: pagopa-checkout-be-mock
+            displayName: 'Setup env for mock'
+
+          - script: yarn install && yarn build
+            workingDirectory: pagopa-checkout-be-mock
+            displayName: 'Setup deps for mock'
+
+          - script: |
+              nohup yarn start &
+            displayName: 'Start backend mock'
+            workingDirectory: pagopa-checkout-be-mock
+          
+          - checkout: self
+          - script: |
+              cd pagopa-checkout-transactions-gateway-fe && git checkout $(SOURCE_BRANCH) && echo "[debug] current branch" && git rev-parse --abbrev-ref HEAD 
+            displayName: 'Restore source branch'
+          - script: |
+             yarn install
+            displayName: 'Start yarn install'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script : |
+             echo "##[debug] Change placeholder ..."
+             ls && git rev-parse --abbrev-ref HEAD 
+             cd test/e2e
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234," .env
+            displayName: 'Setup env for e2e tests'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script: |
+             nohup yarn start &
+            displayName: 'Start local transaction gateway FE'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script: |
+              while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:1234)" != "200" ]]; do sleep 5; done
+            displayName: 'Wait for FE to be up and running'
+          - script: |
+             docker build -t ui_test test/e2e
+            displayName: 'Build test image'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script: | 
+              docker run --add-host=host.docker.internal:host-gateway --name=ui_test ui_test
+            displayName: 'Run UI test container'
+            continueOnError: true 
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script: |
+              docker cp ui_test:/puppeteer/test_reports  test_reports
+            displayName: 'Copy test result'
+            continueOnError: true 
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml' 
+              searchFolder: '$(System.DefaultWorkingDirectory)'

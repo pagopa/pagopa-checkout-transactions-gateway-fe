@@ -115,7 +115,7 @@ stages:
     jobs:
       - job: end_to_end_tests_dev
         steps:
-          - checkout: checkoutTransactionGatewayTests
+          - checkout: checkoutTests
           - script : |
              echo "##[debug] Change placeholder ..."
              cd test/e2e
@@ -245,7 +245,7 @@ stages:
     jobs:
       - job: end_to_end_tests_uat
         steps:
-          - checkout: checkoutTransactionGatewayTests
+          - checkout: checkoutTests
           - script : |
              echo "##[debug] Change placeholder ..."
              cd test/e2e

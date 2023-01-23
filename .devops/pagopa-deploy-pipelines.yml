@@ -121,17 +121,22 @@ stages:
              cd test/e2e
              sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://dev.checkout.pagopa.it/," .env
              sed -i "s,^WRONG_REQUEST_ID=.*$,WRONG_REQUEST_ID=75f5d7ce-ef83-4dd3-8fdc-5a736b138cf3," .env
+            workingDirectory: pagopa-checkout-tests
+            displayName: 'Setup env for test'
           - script: |
              docker build -t ui_test test/e2e
+            workingDirectory: pagopa-checkout-tests
             displayName: 'Build test image'
 
           - script: |
               docker run --name=ui_test ui_test
+            workingDirectory: pagopa-checkout-tests
             displayName: 'Run UI test container'
             continueOnError: true 
 
           - script: |
               docker cp ui_test:/puppeteer/test_reports  test_reports
+            workingDirectory: pagopa-checkout-tests
             displayName: 'Copy test result'
             continueOnError: true 
 

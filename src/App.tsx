@@ -6,7 +6,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/modals/commons/Layout";
 import Postepay from "./pages/Postepay";
 import XPay from "./pages/XPay";
-import { GatewayRoutes } from "./routes/routes";
+import { GatewayRoutes, GatewayRoutesBasePath } from "./routes/routes";
 import "./translations/i18n";
 import Vpos from "./pages/Vpos";
 
@@ -18,13 +18,20 @@ export function App() {
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route path={"/" + GatewayRoutes.POSTEPAY} element={<Postepay />} />
             <Route
-              path={"/" + GatewayRoutes.XPAY + "/:id"}
+              path={"/" + GatewayRoutesBasePath + "/" + GatewayRoutes.POSTEPAY}
+              element={<Postepay />}
+            />
+            <Route
+              path={
+                "/" + GatewayRoutesBasePath + "/" + GatewayRoutes.XPAY + "/:id"
+              }
               element={<XPay />}
             />
             <Route
-              path={"/" + GatewayRoutes.VPOS + "/:id"}
+              path={
+                "/" + GatewayRoutesBasePath + "/" + GatewayRoutes.VPOS + "/:id"
+              }
               element={<Vpos />}
             />
           </Routes>

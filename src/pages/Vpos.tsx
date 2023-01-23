@@ -26,6 +26,45 @@ const layoutStyle: SxProps<Theme> = {
   textAlign: "center",
   alignItems: "center"
 };
+
+const handleMethod = (vposUrl: string, methodData: any) => {
+  start3DS2MethodStep(
+    vposUrl,
+    methodData,
+    createIFrame(document.body, "myIdFrame", "myFrameName")
+  );
+};
+
+const handleChallenge = (vposUrl: string, params: any) => {
+  start3DS2AcsChallengeStep(vposUrl, params, document.body);
+};
+
+const handleRedirect = (vposUrl: string) => {
+  navigate(vposUrl);
+};
+
+const handleResponse = (resp: PaymentRequestVposResponse) => {
+  if (
+    resp.status === StatusEnum.CREATED &&
+    resp.vposUrl !== undefined &&
+    resp.responseType === ResponseTypeEnum.METHOD
+  ) {
+    handleMethod(resp.vposUrl, {});
+  } else if (
+    resp.status === StatusEnum.CREATED &&
+    resp.vposUrl !== undefined &&
+    resp.responseType === ResponseTypeEnum.CHALLENGE
+  ) {
+    handleChallenge(resp.vposUrl, {});
+  } else if (
+    (resp.status === StatusEnum.AUTHORIZED ||
+      resp.status === StatusEnum.DENIED) &&
+    resp.clientReturnUrl !== undefined
+  ) {
+    handleRedirect(resp.clientReturnUrl);
+  }
+};
+
 export default function Vpos() {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -40,44 +79,6 @@ export default function Vpos() {
   const onError = (_e: string) => {
     setPolling(false);
     setErrorModalOpen(true);
-  };
-
-  const handleMethod = (vposUrl: string, methodData: any) => {
-    start3DS2MethodStep(
-      vposUrl,
-      methodData,
-      createIFrame(document.body, "myIdFrame", "myFrameName")
-    );
-  };
-
-  const handleChallenge = (vposUrl: string, params: any) => {
-    start3DS2AcsChallengeStep(vposUrl, params, document.body);
-  };
-
-  const handleRedirect = (vposUrl: string) => {
-    navigate(vposUrl);
-  };
-
-  const handleResponse = (resp: PaymentRequestVposResponse) => {
-    if (
-      resp.status === StatusEnum.CREATED &&
-      resp.vposUrl !== undefined &&
-      resp.responseType === ResponseTypeEnum.METHOD
-    ) {
-      handleMethod(resp.vposUrl, {});
-    } else if (
-      resp.status === StatusEnum.CREATED &&
-      resp.vposUrl !== undefined &&
-      resp.responseType === ResponseTypeEnum.CHALLENGE
-    ) {
-      handleChallenge(resp.vposUrl, {});
-    } else if (
-      (resp.status === StatusEnum.AUTHORIZED ||
-        resp.status === StatusEnum.DENIED) &&
-      resp.clientReturnUrl !== undefined
-    ) {
-      handleRedirect(resp.clientReturnUrl);
-    }
   };
 
   const onResponse = (resp: PaymentRequestVposResponse) => {

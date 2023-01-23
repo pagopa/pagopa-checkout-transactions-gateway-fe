@@ -49,12 +49,6 @@ resources:
       ref: refs/tags/v19
       endpoint: 'io-azure-devops-github-ro'
 
-    - repository: checkoutTests
-      type: github
-      name: pagopa/pagopa-checkout-tests
-      ref: main
-      endpoint: 'io-azure-devops-github-ro'
-
 stages:
   - stage: Prepare_artifact_dev
     condition: and(succeeded(), eq(${{parameters.DEV_DEPLOY}}, true))
@@ -115,7 +109,6 @@ stages:
     jobs:
       - job: end_to_end_tests_dev
         steps:
-          - checkout: checkoutTests
           - script : |
              ls
              echo "##[debug] Change placeholder ..."
@@ -248,7 +241,6 @@ stages:
     jobs:
       - job: end_to_end_tests_uat
         steps:
-          - checkout: checkoutTests
           - script : |
              echo "##[debug] Change placeholder ..."
              cd test/e2e

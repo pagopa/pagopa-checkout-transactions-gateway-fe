@@ -1,4 +1,5 @@
 export enum GatewayRoutes {
   POSTEPAY = "postepay",
-  XPAY = "xpay"
+  XPAY = "xpay",
+  VPOS = "vpos"
 }

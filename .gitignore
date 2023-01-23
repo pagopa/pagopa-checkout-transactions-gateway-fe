@@ -38,3 +38,7 @@ test_reports/
 
 __azurite*.json
 __blobstorage__/
+
+generated/
+
+target/

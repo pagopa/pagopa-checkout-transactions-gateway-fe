@@ -105,7 +105,7 @@ stages:
              echo "##[debug] Change placeholder ..."
              ls && git rev-parse --abbrev-ref HEAD 
              cd test/e2e
-             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234," .env
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234/payment-transactions-gateway," .env
             displayName: 'Setup env for e2e tests'
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |

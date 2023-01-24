@@ -49,12 +49,6 @@ resources:
       ref: refs/tags/v19
       endpoint: 'io-azure-devops-github-ro'
 
-    - repository: checkoutTests
-      type: github
-      name: pagopa/pagopa-checkout-tests
-      ref: main
-      endpoint: 'io-azure-devops-github-ro'
-
 stages:
   - stage: Prepare_artifact_dev
     condition: and(succeeded(), eq(${{parameters.DEV_DEPLOY}}, true))
@@ -74,7 +68,11 @@ stages:
               gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
 
           - script: |
-              API_HOST=https://api.dev.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+             yarn generate
+            displayName: 'Generate'
+
+          - script: |
+              API_HOST=https://api.dev.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1/request-payments API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
             displayName: 'Build'
 
           - publish: $(System.DefaultWorkingDirectory)/dist
@@ -115,12 +113,14 @@ stages:
     jobs:
       - job: end_to_end_tests_dev
         steps:
-          - checkout: checkoutTransactionGatewayTests
           - script : |
+             ls
              echo "##[debug] Change placeholder ..."
              cd test/e2e
-             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://dev.checkout.pagopa.it/," .env
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://dev.checkout.pagopa.it/payment-transactions-gateway/," .env
              sed -i "s,^WRONG_REQUEST_ID=.*$,WRONG_REQUEST_ID=75f5d7ce-ef83-4dd3-8fdc-5a736b138cf3," .env
+            
+            displayName: 'Setup env for test'
           - script: |
              docker build -t ui_test test/e2e
             displayName: 'Build test image'
@@ -203,7 +203,11 @@ stages:
               gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
 
           - script: |
-              API_HOST=https://api.uat.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+             yarn generate
+            displayName: 'Generate'
+
+          - script: |
+              API_HOST=https://api.uat.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1/request-payments API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
 
             displayName: 'Build'
 
@@ -245,11 +249,10 @@ stages:
     jobs:
       - job: end_to_end_tests_uat
         steps:
-          - checkout: checkoutTransactionGatewayTests
           - script : |
              echo "##[debug] Change placeholder ..."
              cd test/e2e
-             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://uat.checkout.pagopa.it/," .env
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://uat.checkout.pagopa.it/payment-transactions-gateway/," .env
              sed -i "s,^WRONG_REQUEST_ID=.*$,WRONG_REQUEST_ID=75f5d7ce-ef83-4dd3-8fdc-5a736b138cf3," .env
           - script: |
              docker build -t ui_test test/e2e

@@ -45,9 +45,7 @@ export default function XPay() {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(
-          `${getConfig().API_HOST}/request-payments/${
-            GatewayRoutes.XPAY
-          }/${id}`,
+          `${getConfig().API_HOST}/${GatewayRoutes.XPAY}/${id}`,
           overwriteDom,
           onError
         )
@@ -72,7 +70,7 @@ export default function XPay() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfig().API_HOST}/request-payments/${GatewayRoutes.XPAY}/${id}`,
+      `${getConfig().API_HOST}/${GatewayRoutes.XPAY}/${id}`,
       onResponse,
       onError
     );

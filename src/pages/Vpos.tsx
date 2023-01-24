@@ -26,6 +26,45 @@ const layoutStyle: SxProps<Theme> = {
   textAlign: "center",
   alignItems: "center"
 };
+
+const handleMethod = (vposUrl: string, methodData: any) => {
+  start3DS2MethodStep(
+    vposUrl,
+    methodData,
+    createIFrame(document.body, "myIdFrame", "myFrameName")
+  );
+};
+
+const handleChallenge = (vposUrl: string, params: any) => {
+  start3DS2AcsChallengeStep(vposUrl, params, document.body);
+};
+
+const handleRedirect = (vposUrl: string) => {
+  navigate(vposUrl);
+};
+
+const handleResponse = (resp: PaymentRequestVposResponse) => {
+  if (
+    resp.status === StatusEnum.CREATED &&
+    resp.vposUrl !== undefined &&
+    resp.responseType === ResponseTypeEnum.METHOD
+  ) {
+    handleMethod(resp.vposUrl, {});
+  } else if (
+    resp.status === StatusEnum.CREATED &&
+    resp.vposUrl !== undefined &&
+    resp.responseType === ResponseTypeEnum.CHALLENGE
+  ) {
+    handleChallenge(resp.vposUrl, {});
+  } else if (
+    (resp.status === StatusEnum.AUTHORIZED ||
+      resp.status === StatusEnum.DENIED) &&
+    resp.clientReturnUrl !== undefined
+  ) {
+    handleRedirect(resp.clientReturnUrl);
+  }
+};
+
 export default function Vpos() {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -42,51 +81,13 @@ export default function Vpos() {
     setErrorModalOpen(true);
   };
 
-  const handleMethod = (vposUrl: string, methodData: any) => {
-    start3DS2MethodStep(
-      vposUrl,
-      methodData,
-      createIFrame(document.body, "myIdFrame", "myFrameName")
-    );
-  };
-
-  const handleChallenge = (vposUrl: string, params: any) => {
-    start3DS2AcsChallengeStep(vposUrl, params, document.body);
-  };
-
-  const handleRedirect = (vposUrl: string) => {
-    navigate(vposUrl);
-  };
-
-  const handleResponse = (resp: PaymentRequestVposResponse) => {
-    if (
-      resp.status === StatusEnum.CREATED &&
-      resp.vposUrl !== undefined &&
-      resp.responseType === ResponseTypeEnum.METHOD
-    ) {
-      handleMethod(resp.vposUrl, {});
-    } else if (
-      resp.status === StatusEnum.CREATED &&
-      resp.vposUrl !== undefined &&
-      resp.responseType === ResponseTypeEnum.CHALLENGE
-    ) {
-      handleChallenge(resp.vposUrl, {});
-    } else if (
-      (resp.status === StatusEnum.AUTHORIZED ||
-        resp.status === StatusEnum.DENIED) &&
-      resp.clientReturnUrl !== undefined
-    ) {
-      handleRedirect(resp.clientReturnUrl);
-    }
-  };
-
   const onResponse = (resp: PaymentRequestVposResponse) => {
     // Not a final state -> continue polling
     if (resp.status === StatusEnum.CREATED && resp.vposUrl === undefined) {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(
-          `${getConfig().API_HOST}/request-payments/${
+          `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
             GatewayRoutes.VPOS
           }/${id}`,
           handleResponse,
@@ -114,7 +115,9 @@ export default function Vpos() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfig().API_HOST}/request-payments/${GatewayRoutes.VPOS}/${id}`,
+      `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
+        GatewayRoutes.VPOS
+      }/${id}`,
       onResponse,
       onError
     );

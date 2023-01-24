@@ -52,14 +52,14 @@ export default function Index() {
     transactionFetch(
       `${getConfig().API_HOST}/${
         getConfig().API_BASEPATH
-      }/request-payments/${paymentGateway}/${requestId}`,
+      }/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );
     transactionPolling(
       `${getConfig().API_HOST}/${
         getConfig().API_BASEPATH
-      }/request-payments/${paymentGateway}/${requestId}`,
+      }/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );

@@ -46,7 +46,7 @@ stages:
         - template: templates/node-job-setup/template.yaml@pagopaCommons
 
         - script: |
-            API_HOST=http://localhost:8080 API_BASEPATH=transaction-gateway API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+            API_HOST=http://localhost:8080 API_BASEPATH=transaction-gateway API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn generate && yarn build
           displayName: 'Build'
   
   - stage: Static_Analysis
@@ -98,14 +98,14 @@ stages:
               cd pagopa-checkout-transactions-gateway-fe && git checkout $(SOURCE_BRANCH) && echo "[debug] current branch" && git rev-parse --abbrev-ref HEAD 
             displayName: 'Restore source branch'
           - script: |
-             yarn install
+             yarn install && yarn generate
             displayName: 'Start yarn install'
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script : |
              echo "##[debug] Change placeholder ..."
              ls && git rev-parse --abbrev-ref HEAD 
              cd test/e2e
-             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234," .env
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http://host.docker.internal:1234/payment-transactions-gateway," .env
             displayName: 'Setup env for e2e tests'
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |

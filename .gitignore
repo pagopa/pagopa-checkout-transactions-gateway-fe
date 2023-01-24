@@ -40,3 +40,5 @@ __azurite*.json
 __blobstorage__/
 
 generated/
+
+target/

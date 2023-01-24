@@ -199,6 +199,10 @@ stages:
               gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
 
           - script: |
+             yarn generate
+            displayName: 'Generate'
+
+          - script: |
               API_HOST=https://api.uat.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1/request-payments API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
 
             displayName: 'Build'

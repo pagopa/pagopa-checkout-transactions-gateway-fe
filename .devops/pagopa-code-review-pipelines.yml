@@ -46,7 +46,7 @@ stages:
         - template: templates/node-job-setup/template.yaml@pagopaCommons
 
         - script: |
-            API_HOST=http://localhost:8080 API_BASEPATH=transaction-gateway API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+            API_HOST=http://localhost:8080 API_BASEPATH=transaction-gateway API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn generate && yarn build
           displayName: 'Build'
   
   - stage: Static_Analysis

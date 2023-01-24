@@ -19,19 +19,15 @@ export function App() {
         <Layout>
           <Routes>
             <Route
-              path={"/" + GatewayRoutesBasePath + "/" + GatewayRoutes.POSTEPAY}
+              path={`/${GatewayRoutesBasePath}/${GatewayRoutes.POSTEPAY}`}
               element={<Postepay />}
             />
             <Route
-              path={
-                "/" + GatewayRoutesBasePath + "/" + GatewayRoutes.XPAY + "/:id"
-              }
+              path={`/${GatewayRoutesBasePath}/${GatewayRoutes.XPAY}/:id`}
               element={<XPay />}
             />
             <Route
-              path={
-                "/" + GatewayRoutesBasePath + "/" + GatewayRoutes.VPOS + "/:id"
-              }
+              path={`/${GatewayRoutesBasePath}/${GatewayRoutes.VPOS}/:id`}
               element={<Vpos />}
             />
           </Routes>

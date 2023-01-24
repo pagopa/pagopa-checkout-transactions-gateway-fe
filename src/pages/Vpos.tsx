@@ -87,7 +87,7 @@ export default function Vpos() {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(
-          `${getConfig().API_HOST}/request-payments/${
+          `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
             GatewayRoutes.VPOS
           }/${id}`,
           handleResponse,
@@ -115,7 +115,9 @@ export default function Vpos() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfig().API_HOST}/request-payments/${GatewayRoutes.VPOS}/${id}`,
+      `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
+        GatewayRoutes.VPOS
+      }/${id}`,
       onResponse,
       onError
     );

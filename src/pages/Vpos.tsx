@@ -6,9 +6,10 @@ import { useParams } from "react-router-dom";
 import ErrorModal from "../components/modals/ErrorModal";
 import { GatewayRoutes } from "../routes/routes";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfig } from "../utils/config";
+import { getConfigOrThrow } from "../utils/config/config";
 import { navigate } from "../utils/navigation";
 import {
+  addIFrameMessageListener,
   createIFrame,
   start3DS2AcsChallengeStep,
   start3DS2MethodStep
@@ -18,6 +19,7 @@ import {
   ResponseTypeEnum,
   StatusEnum
 } from "../generated/pgs/PaymentRequestVposResponse";
+import { handleMethodMessage } from "../utils/transactions/transactionHelpers";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -28,6 +30,7 @@ const layoutStyle: SxProps<Theme> = {
 };
 
 const handleMethod = (vposUrl: string, methodData: any) => {
+  addIFrameMessageListener(handleMethodMessage);
   start3DS2MethodStep(
     vposUrl,
     methodData,
@@ -49,13 +52,13 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.METHOD
   ) {
-    handleMethod(resp.vposUrl, {});
+    handleMethod(resp.vposUrl, {}); // TODO: recover 3ds2MethodData
   } else if (
     resp.status === StatusEnum.CREATED &&
     resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.CHALLENGE
   ) {
-    handleChallenge(resp.vposUrl, {});
+    handleChallenge(resp.vposUrl, {}); // TODO: recover challenge data
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||
       resp.status === StatusEnum.DENIED) &&
@@ -87,7 +90,7 @@ export default function Vpos() {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(
-          `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
+          `${getConfigOrThrow().API_HOST}/${getConfigOrThrow().API_BASEPATH}/${
             GatewayRoutes.VPOS
           }/${id}`,
           handleResponse,
@@ -105,7 +108,7 @@ export default function Vpos() {
       setTimeoutId(
         window.setTimeout(() => {
           setErrorModalOpen(true);
-        }, getConfig().API_TIMEOUT)
+        }, getConfigOrThrow().API_TIMEOUT)
       );
     } else {
       timeoutId && window.clearTimeout(timeoutId);
@@ -115,7 +118,7 @@ export default function Vpos() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
+      `${getConfigOrThrow().API_HOST}/${getConfigOrThrow().API_BASEPATH}/${
         GatewayRoutes.VPOS
       }/${id}`,
       onResponse,

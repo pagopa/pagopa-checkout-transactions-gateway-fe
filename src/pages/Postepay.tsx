@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import ErrorModal from "../components/modals/ErrorModal";
 import { Channel, PollingResponseEntity } from "../models/transactions";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfig } from "../utils/config";
+import { getConfigOrThrow } from "../utils/config/config";
 import {
   getCurrentLocation,
   getQueryParam,
@@ -50,15 +50,15 @@ export default function Index() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfig().API_HOST}/${
-        getConfig().API_BASEPATH
+      `${getConfigOrThrow().API_HOST}/${
+        getConfigOrThrow().API_BASEPATH
       }/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );
     transactionPolling(
-      `${getConfig().API_HOST}/${
-        getConfig().API_BASEPATH
+      `${getConfigOrThrow().API_HOST}/${
+        getConfigOrThrow().API_BASEPATH
       }/${paymentGateway}/${requestId}`,
       setInfo,
       onError

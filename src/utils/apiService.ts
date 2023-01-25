@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { getConfig } from "./config";
+import { getConfigOrThrow } from "./config/config";
 
 export function transactionFetch(
   url: string,
@@ -34,5 +34,5 @@ export function transactionPolling(
       })
       .then(onResponse)
       .catch(onError);
-  }, getConfig().API_GET_INTERVAL);
+  }, getConfigOrThrow().API_GET_INTERVAL);
 }

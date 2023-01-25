@@ -119,9 +119,9 @@ stages:
              cd test/e2e
              sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=https://dev.checkout.pagopa.it/payment-transactions-gateway," .env
              sed -i "s,^WRONG_REQUEST_ID=.*$,WRONG_REQUEST_ID=75f5d7ce-ef83-4dd3-8fdc-5a736b138cf3," .env
-             sed -i "s,^VPOS_MOCK_API_KEY=*$,VPOS_MOCK_API_KEY=$(DEV-PGS-MOCK-TEST-API-KEY)," .env
-             sed -i "s,^VPOS_API_KEY=*$,VPOS_API_KEY=$(DEV-PGS-TEST-API-KEY)," .env
-             sed -i "s,^VPOS_USE_PGS_MOCK=*$,VPOS_USE_PGS_MOCK=true," .env
+             sed -i "s,^VPOS_MOCK_API_KEY=.*$,VPOS_MOCK_API_KEY=$(DEV-PGS-MOCK-TEST-API-KEY)," .env
+             sed -i "s,^VPOS_API_KEY=.*$,VPOS_API_KEY=$(DEV-PGS-TEST-API-KEY)," .env
+             sed -i "s,^VPOS_USE_PGS_MOCK=.*$,VPOS_USE_PGS_MOCK=true," .env
              cat .env
              echo "##[command]Command-line being run"
             displayName: 'Setup env for test'

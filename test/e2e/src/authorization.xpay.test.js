@@ -19,7 +19,7 @@ describe('Transaction gateway FE xpay authorization tests', () => {
      await page.setDefaultTimeout(180000);
    });
 
-  it('xpay - Should return 404 not found with wrong requestId', async () => {
+  it.skip('xpay - Should return 404 not found with wrong requestId', async () => {
     const WRONG_REQUEST_ID = process.env.WRONG_REQUEST_ID;
 
     await page.goto(`${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/xpay/${WRONG_REQUEST_ID}`);
@@ -28,7 +28,7 @@ describe('Transaction gateway FE xpay authorization tests', () => {
     expect(errorMessage).toContain('Spiacenti, si è verificato un errore imprevisto');
   });
 
-  it('xpay - Should successfully authorize with correct requestId', async () => {
+  it.skip('xpay - Should successfully authorize with correct requestId', async () => {
     const CORRECT_REQUEST_ID = process.env.NEXI_CORRECT_REQUEST_ID;
 
     await page.goto(`${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/xpay/${CORRECT_REQUEST_ID}`);

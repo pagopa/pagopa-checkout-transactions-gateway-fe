@@ -24,14 +24,21 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
 
   const VPOS_EXPECTED_REDIRECTION_URL = process.env.VPOS_EXPECTED_REDIRECTION_URL;
 
-  /**
-  * Increase default test timeout (5000ms)
-  * to support entire payment flow
-  */
-  jest.setTimeout(180000);
-
-
-  it('VPOS - Should complete step 0 direct authorization', () => {
+   /**
+   * Increase default test timeout (60000ms)
+   * to support entire payment flow
+    */
+   jest.setTimeout(60000);
+   jest.retryTimes(3);
+   page.setDefaultNavigationTimeout(60000);
+   page.setDefaultTimeout(60000)
+ 
+   beforeAll( async () => {
+     await page.setViewport({ width: 1200, height: 907 });
+   })
+ 
+   
+  it('VPOS - Should complete step 0 direct authorization', async () => {
     if (VPOS_USE_PGS_MOCK === "true") {
       //first call mock api for configure direct authorization
       expect(configureMockStep0DirectAuth(VPOS_MOCK_CONFIGURATION_URL, "00", "00", "00", VPOS_MOCK_API_KEY)).resolves.toBe(200);

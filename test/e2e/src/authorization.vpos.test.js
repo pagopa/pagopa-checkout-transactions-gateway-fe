@@ -25,6 +25,8 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
 
   const VPOS_API_KEY = process.env.VPOS_API_KEY;
 
+  const VPOS_EXPECTED_REDIRECTION_URL = process.env.VPOS_EXPECTED_REDIRECTION_URL;
+
   /**
    * Increase default test timeout (5000ms)
    * to support entire payment flow
@@ -41,29 +43,19 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
       expect(configureMockStep0DirectAuth(VPOS_MOCK_CONFIGURATION_URL, "00", "00", "00", VPOS_MOCK_API_KEY)).resolves.toBe(200);
       let response = await authRequestVpos(VPOS_AUTH_URL, VPOS_API_KEY);
       expect(response).not.toBe("");
-      await auth0Test(response.requestId);
+      await auth0Test(response.requestId, VPOS_EXPECTED_REDIRECTION_URL);
     } else {
-      await auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID);
+      await auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID, VPOS_EXPECTED_REDIRECTION_URL);
     }
 
   });
 });
 
-const auth0Test = async (requestId) => {
-
-  let redirectionUrl = "";
-  page.on('response', async response =>{
-      if(response.request().url().indexOf("request-payments")!=-1){
-        const responseBody = await response.json();
-        if (responseBody.clientReturnUrl != undefined) {
-          redirectionUrl = responseBody.clientReturnUrl;
-        }
-      }
-    });
+const auth0Test = async (requestId,expectedRedirectionUrl) => {
   await page.goto(`${process.env.PAYMENT_TRANSACTION_GATEWAY_FE_URL}/vpos/${requestId}`);
   await page.waitForNavigation();
   const finalUrl = page.url();
-  expect(redirectionUrl).toContain(finalUrl);
+  expect(finalUrl).toContain(expectedRedirectionUrl);
 }
 
 const configureMockStep0DirectAuth = async (url, step0Outcome, step1Outcome, step2Outcome, apiKey) => fetch(url, {

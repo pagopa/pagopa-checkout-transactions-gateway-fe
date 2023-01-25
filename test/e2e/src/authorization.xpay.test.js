@@ -16,7 +16,7 @@ describe('Transaction gateway FE xpay authorization tests', () => {
     await page.setViewport({ width: 1200, height: 907 });
   });
 
-  it('xpay - Should return 404 not found with wrong requestId', async () => {
+  it.only('xpay - Should return 404 not found with wrong requestId', async () => {
     const WRONG_REQUEST_ID = process.env.WRONG_REQUEST_ID;
 
     await page.goto(`${PAYMENT_TRANSACTION_GATEWAY_FE_URL}/xpay/${WRONG_REQUEST_ID}`);

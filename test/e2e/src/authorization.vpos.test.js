@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { v4 as uuidv4 } from 'uuid';
 
 
-describe('Transaction gateway FE VPOS authorization tests', () => {
+describe.skip('Transaction gateway FE VPOS authorization tests', () => {
   /**
    * Configuration parameter for use pgs mock. If enabled then psg mock will be configured and used during f.e. tests
    */

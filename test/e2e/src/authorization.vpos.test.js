@@ -33,9 +33,9 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
  
    beforeAll( async () => {
      await page.setViewport({ width: 1200, height: 907 });
-     await page.setDefaultNavigationTimeout(60000);
-     await page.setDefaultTimeout(60000);
-   })
+     await page.setDefaultNavigationTimeout(30000);
+     await page.setDefaultTimeout(30000);
+   });
  
    
   it('VPOS - Should complete step 0 direct authorization', async () => {

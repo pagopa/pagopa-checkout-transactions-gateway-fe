@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { v4 as uuidv4 } from 'uuid';
 
 
-describe.skip('Transaction gateway FE VPOS authorization tests', () => {
+describe('Transaction gateway FE VPOS authorization tests', () => {
   /**
    * Configuration parameter for use pgs mock. If enabled then psg mock will be configured and used during f.e. tests
    */
@@ -54,8 +54,8 @@ describe.skip('Transaction gateway FE VPOS authorization tests', () => {
 
 const auth0Test = async (requestId, expectedRedirectionUrl) => {
   await page.goto(`${process.env.PAYMENT_TRANSACTION_GATEWAY_FE_URL}/vpos/${requestId}`);
-  await page.waitForNavigation({timeout: 20000, waitUntil: ['networkidle2']});
-  const finalUrl = await page.url();
+  await page.waitForNavigation({ waitUntil: 'networkidle2' });
+  const finalUrl = await page.evaluate(() => document.location.href);
   expect(finalUrl).toContain(expectedRedirectionUrl);
 }
 

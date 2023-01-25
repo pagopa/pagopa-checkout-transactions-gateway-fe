@@ -122,7 +122,8 @@ stages:
              sed -i "s,^VPOS_MOCK_API_KEY=*$,VPOS_MOCK_API_KEY=$(DEV-PGS-MOCK-TEST-API-KEY)," .env
              sed -i "s,^VPOS_API_KEY=*$,VPOS_API_KEY=$(DEV-PGS-TEST-API-KEY)," .env
              sed -i "s,^VPOS_USE_PGS_MOCK=*$,VPOS_USE_PGS_MOCK=true," .env
-             
+             cat .env
+             echo "##[command]Command-line being run"
             displayName: 'Setup env for test'
           - script: |
              docker build -t ui_test test/e2e

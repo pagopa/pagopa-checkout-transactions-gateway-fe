@@ -25,11 +25,10 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
   const VPOS_EXPECTED_REDIRECTION_URL = process.env.VPOS_EXPECTED_REDIRECTION_URL;
 
    /**
-   * Increase default test timeout (60000ms)
+   * Increase default test timeout (30000ms)
    * to support entire payment flow
     */
-   jest.setTimeout(60000);
-   jest.retryTimes(3);
+   jest.setTimeout(30000);
  
  
    beforeAll( async () => {

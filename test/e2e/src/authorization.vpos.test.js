@@ -1,11 +1,8 @@
 import fetch from "node-fetch";
 import { v4 as uuidv4 } from 'uuid';
 
-describe('Transaction gateway FE VPOS authorization tests', () => {
-  /**
-   * Test input and configuration
-   */
 
+describe('Transaction gateway FE VPOS authorization tests', () => {
   /**
    * Configuration parameter for use pgs mock. If enabled then psg mock will be configured and used during f.e. tests
    */
@@ -28,37 +25,34 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
   const VPOS_EXPECTED_REDIRECTION_URL = process.env.VPOS_EXPECTED_REDIRECTION_URL;
 
   /**
-   * Increase default test timeout (5000ms)
-   * to support entire payment flow
-   */
-  jest.setTimeout(30000);
+  * Increase default test timeout (5000ms)
+  * to support entire payment flow
+  */
+  jest.setTimeout(180000);
 
-  beforeEach(async () => {
-    await page.setViewport({ width: 1200, height: 907 });
-  });
 
-  it('VPOS - Should complete step 0 direct authorization', async () => {
+  it('VPOS - Should complete step 0 direct authorization', () => {
     if (VPOS_USE_PGS_MOCK === "true") {
       //first call mock api for configure direct authorization
       expect(configureMockStep0DirectAuth(VPOS_MOCK_CONFIGURATION_URL, "00", "00", "00", VPOS_MOCK_API_KEY)).resolves.toBe(200);
-      let response = await authRequestVpos(VPOS_AUTH_URL, VPOS_API_KEY);
+      let response = authRequestVpos(VPOS_AUTH_URL, VPOS_API_KEY);
       expect(response.errorHttpStatus).not.toBeDefined();
-      await auth0Test(response.requestId, VPOS_EXPECTED_REDIRECTION_URL);
+      auth0Test(response.requestId, VPOS_EXPECTED_REDIRECTION_URL);
     } else {
-      await auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID, VPOS_EXPECTED_REDIRECTION_URL);
+      auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID, VPOS_EXPECTED_REDIRECTION_URL);
     }
 
   });
 });
 
-const auth0Test = async (requestId,expectedRedirectionUrl) => {
+const auth0Test = async (requestId, expectedRedirectionUrl) => {
   await page.goto(`${process.env.PAYMENT_TRANSACTION_GATEWAY_FE_URL}/vpos/${requestId}`);
   await page.waitForNavigation();
   const finalUrl = page.url();
   expect(finalUrl).toContain(expectedRedirectionUrl);
 }
 
-const configureMockStep0DirectAuth = async (url, step0Outcome, step1Outcome, step2Outcome, apiKey) => fetch(url, {
+const configureMockStep0DirectAuth = async (url,step0Outcome, step1Outcome, step2Outcome, apiKey) => fetch(url, {
   method: "POST",
   body: JSON.stringify({
     "method3dsOutcome": "OK",

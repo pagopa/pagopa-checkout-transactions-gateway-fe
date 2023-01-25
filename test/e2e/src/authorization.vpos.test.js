@@ -30,11 +30,12 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
     */
    jest.setTimeout(60000);
    jest.retryTimes(3);
-   page.setDefaultNavigationTimeout(60000);
-   page.setDefaultTimeout(60000)
+ 
  
    beforeAll( async () => {
      await page.setViewport({ width: 1200, height: 907 });
+     await page.setDefaultNavigationTimeout(60000);
+     await page.setDefaultTimeout(60000);
    })
  
    
@@ -42,11 +43,11 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
     if (VPOS_USE_PGS_MOCK === "true") {
       //first call mock api for configure direct authorization
       expect(configureMockStep0DirectAuth(VPOS_MOCK_CONFIGURATION_URL, "00", "00", "00", VPOS_MOCK_API_KEY)).resolves.toBe(200);
-      let response = authRequestVpos(VPOS_AUTH_URL, VPOS_API_KEY);
+      let response = await authRequestVpos(VPOS_AUTH_URL, VPOS_API_KEY);
       expect(response.errorHttpStatus).not.toBeDefined();
-      auth0Test(response.requestId, VPOS_EXPECTED_REDIRECTION_URL);
+      await auth0Test(response.requestId, VPOS_EXPECTED_REDIRECTION_URL);
     } else {
-      auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID, VPOS_EXPECTED_REDIRECTION_URL);
+      await auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID, VPOS_EXPECTED_REDIRECTION_URL);
     }
 
   });

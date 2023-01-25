@@ -10,13 +10,13 @@ describe('Transaction gateway FE xpay authorization tests', () => {
    * Increase default test timeout (180000ms)
    * to support entire payment flow
     */
-   jest.setTimeout(180000);
+   jest.setTimeout(60000);
  
  
    beforeAll( async () => {
      await page.setViewport({ width: 1200, height: 907 });
-     await page.setDefaultNavigationTimeout(180000);
-     await page.setDefaultTimeout(180000);
+     await page.setDefaultNavigationTimeout(60000);
+     await page.setDefaultTimeout(60000);
    });
 
   it('xpay - Should return 404 not found with wrong requestId', async () => {

@@ -54,7 +54,7 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
 
 const auth0Test = async (requestId, expectedRedirectionUrl) => {
   await page.goto(`${process.env.PAYMENT_TRANSACTION_GATEWAY_FE_URL}/vpos/${requestId}`);
-  await page.waitForNavigation({waitUntil: 'networkidle0'});
+  await page.waitForNavigation({timeout: 20000, waitUntil: ['networkidle2']});
   const finalUrl = await page.url();
   expect(finalUrl).toContain(expectedRedirectionUrl);
 }

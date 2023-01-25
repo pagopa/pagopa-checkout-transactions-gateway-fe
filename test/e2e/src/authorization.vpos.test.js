@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import { v4 as uuidv4 } from 'uuid';
+import { getErrorMessage } from "./utils/utils";
 
 
 describe('Transaction gateway FE VPOS authorization tests', () => {
@@ -50,6 +51,17 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
     }
 
   });
+
+  it('VPOS - Should show error message for invalid request id', async () => {
+    const requestId = process.env.VPOS_404_WRONG_REQUEST_ID;
+
+    await page.goto(`${process.env.PAYMENT_TRANSACTION_GATEWAY_FE_URL}/vpos/${requestId}`);
+    const errorMessage = await getErrorMessage();
+
+    expect(errorMessage).toContain('Spiacenti, si è verificato un errore imprevisto');
+
+  });
+
 });
 
 const auth0Test = async (requestId, expectedRedirectionUrl) => {

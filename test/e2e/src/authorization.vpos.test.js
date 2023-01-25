@@ -42,7 +42,7 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
       //first call mock api for configure direct authorization
       expect(configureMockStep0DirectAuth(VPOS_MOCK_CONFIGURATION_URL, "00", "00", "00", VPOS_MOCK_API_KEY)).resolves.toBe(200);
       let response = await authRequestVpos(VPOS_AUTH_URL, VPOS_API_KEY);
-      expect(response).not.toBe("");
+      expect(response.errorHttpStatus).not.toBeDefined();
       await auth0Test(response.requestId, VPOS_EXPECTED_REDIRECTION_URL);
     } else {
       await auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID, VPOS_EXPECTED_REDIRECTION_URL);
@@ -97,8 +97,10 @@ const authRequestVpos = async (url, apiKey) => fetch(url, {
   }
 }).then(response => {
   if (response.ok) {
-    return response.json()
+    return response.json();
   } else {
-    return "";
+    return {
+      errorHttpStatus: response.status
+    };
   }
 });

@@ -1,22 +1,16 @@
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { calculateExponentialBackoffInterval } from "@pagopa/ts-commons/lib/backoff";
-import {
-  AbortableFetch,
-  retriableFetch,
-  setFetchTimeout,
-  toFetch
-} from "@pagopa/ts-commons/lib/fetch";
+import { retriableFetch } from "@pagopa/ts-commons/lib/fetch";
 import {
   RetriableTask,
   withRetries,
   TransientError
 } from "@pagopa/ts-commons/lib/tasks";
-import { Millisecond } from "@pagopa/ts-commons/lib/units";
 import { pipe } from "fp-ts/function";
-import { getConfigOrThrow } from "../config/config";
 
-const API_TIMEOUT = getConfigOrThrow().API_TIMEOUT as Millisecond;
+// TODO: use timeoutFetch
+// const API_TIMEOUT = getConfigOrThrow().API_TIMEOUT as Millisecond;
 //
 // Fetch with transient error handling. Handle error that occurs once or at unpredictable intervals.
 //
@@ -42,13 +36,13 @@ export function retryLogicForTransientResponseError(
 }
 
 export function retryingFetch(
-  fetchApi: typeof fetch,
-  timeout: Millisecond = API_TIMEOUT,
+  // fetchApi: typeof fetch,
+  // timeout: Millisecond = API_TIMEOUT,
   maxRetries: number = 3
 ): typeof fetch {
   // a fetch that can be aborted and that gets cancelled after fetchTimeoutMs
-  const abortableFetch = AbortableFetch(fetchApi);
-  const timeoutFetch = toFetch(setFetchTimeout(timeout, abortableFetch));
+  // const abortableFetch = AbortableFetch(fetchApi);
+  // const timeoutFetch = toFetch(setFetchTimeout(timeout, abortableFetch));
   // configure retry logic with default exponential backoff
   // @see https://github.com/pagopa/io-ts-commons/blob/master/src/backoff.ts
   const exponentialBackoff = calculateExponentialBackoffInterval();
@@ -60,5 +54,5 @@ export function retryingFetch(
     (_: Response) => _.status === 429,
     retryLogic
   );
-  return retriableFetch(retryWithTransient429s)(timeoutFetch);
+  return retriableFetch(retryWithTransient429s)(fetch);
 }

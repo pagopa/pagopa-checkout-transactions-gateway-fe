@@ -53,7 +53,15 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     resp.responseType === ResponseTypeEnum.METHOD
   ) {
     sessionStorage.setItem("requestId", resp.requestId);
-    handleMethod(resp.vposUrl, {}); // TODO: recover 3ds2MethodData
+    handleMethod(
+      resp.vposUrl, // Workaround pending PGS development
+      Buffer.from(
+        JSON.stringify({
+          threeDSMethodNotificationUrl: `https://api.dev.platform.pagopa.it/payment-transactions-gateway/external/v1/request-payments/vpos/${resp.requestId}/method/notifications`,
+          threeDSServerTransID: resp.requestId
+        })
+      ).toString("base64")
+    ); // TODO: recover 3ds2MethodData
   } else if (
     resp.status === StatusEnum.CREATED &&
     resp.vposUrl !== undefined &&

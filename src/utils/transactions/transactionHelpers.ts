@@ -2,20 +2,18 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
-import { Millisecond } from "@pagopa/ts-commons/lib/units";
 import { getConfigOrThrow } from "../config/config";
 import {
   Client,
   createClient as createPgsClient
 } from "../../generated/pgs/client";
-import { retryingFetch } from "../api/fetch";
-import { CreditCardResumeRequest } from "../../generated/pgs/CreditCardResumeRequest";
+import { VposResumeRequest } from "../../generated/pgs/VposResumeRequest";
 import { UNKNOWN } from "./transactionStatus";
 
 const config = getConfigOrThrow();
 const pgsClient: Client = createPgsClient({
   baseUrl: config.API_HOST,
-  fetchApi: retryingFetch(fetch, config.API_TIMEOUT as Millisecond, 5)
+  fetchApi: fetch
 });
 
 export const getStringFromSessionStorageTask = (
@@ -72,7 +70,7 @@ export const resumeTransactionTask = (
           requestId,
           body: {
             methodCompleted
-          } as CreditCardResumeRequest
+          } as VposResumeRequest
         }),
       () => E.toError
     ),

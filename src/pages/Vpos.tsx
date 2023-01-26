@@ -52,6 +52,7 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.METHOD
   ) {
+    sessionStorage.setItem("requestId", resp.requestId);
     handleMethod(resp.vposUrl, {}); // TODO: recover 3ds2MethodData
   } else if (
     resp.status === StatusEnum.CREATED &&

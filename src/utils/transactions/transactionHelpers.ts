@@ -41,7 +41,7 @@ export const handleMethodMessage = async (e: MessageEvent<any>) => {
       (
         e1: MessageEvent<any> // TODO: check origin
       ) =>
-        e1.origin === "config.CHECKOUT_PAGOPA_APIM_HOST" &&
+        // e1.origin === config.CHECKOUT_PAGOPA_APIM_HOST &&
         e1.data === "3DS.Notification.Received",
       E.toError
     )(e),
@@ -51,9 +51,9 @@ export const handleMethodMessage = async (e: MessageEvent<any>) => {
       },
       (_) => {
         pipe(
-          getStringFromSessionStorageTask("idTransaction"),
-          TE.chain((idTransaction: string) =>
-            pipe(resumeTransactionTask("Y", idTransaction))
+          getStringFromSessionStorageTask("requestId"),
+          TE.chain((requestId: string) =>
+            pipe(resumeTransactionTask("Y", requestId))
           )
         );
       }
@@ -68,7 +68,7 @@ export const resumeTransactionTask = (
   pipe(
     TE.tryCatch(
       () =>
-        pgsClient.resumeCreditCard({
+        pgsClient.ResumeVposPaymentRequest({
           requestId,
           body: {
             methodCompleted

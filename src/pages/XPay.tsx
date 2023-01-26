@@ -19,6 +19,7 @@ const layoutStyle: SxProps<Theme> = {
 export default function XPay() {
   const { t } = useTranslation();
   const { id } = useParams();
+  const config = getConfigOrThrow();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
   const [timeoutId, setTimeoutId] = React.useState<number>();
@@ -45,9 +46,7 @@ export default function XPay() {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(
-          `${getConfigOrThrow().API_HOST}/${getConfigOrThrow().API_BASEPATH}/${
-            GatewayRoutes.XPAY
-          }/${id}`,
+          `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.XPAY}/${id}`,
           overwriteDom,
           onError
         )
@@ -62,7 +61,7 @@ export default function XPay() {
       setTimeoutId(
         window.setTimeout(() => {
           setErrorModalOpen(true);
-        }, getConfigOrThrow().API_TIMEOUT)
+        }, config.API_TIMEOUT)
       );
     } else {
       timeoutId && window.clearTimeout(timeoutId);
@@ -72,9 +71,7 @@ export default function XPay() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfigOrThrow().API_HOST}/${getConfigOrThrow().API_BASEPATH}/${
-        GatewayRoutes.XPAY
-      }/${id}`,
+      `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.XPAY}/${id}`,
       onResponse,
       onError
     );

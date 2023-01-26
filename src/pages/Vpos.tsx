@@ -29,13 +29,15 @@ const layoutStyle: SxProps<Theme> = {
   alignItems: "center"
 };
 
+const config = getConfigOrThrow();
+
 const handleMethod = (vposUrl: string, methodData: any) => {
-  addIFrameMessageListener(handleMethodMessage);
   start3DS2MethodStep(
     vposUrl,
     methodData,
     createIFrame(document.body, "myIdFrame", "myFrameName")
   );
+  addIFrameMessageListener(handleMethodMessage);
 };
 
 const handleChallenge = (vposUrl: string, params: any) => {
@@ -99,9 +101,7 @@ export default function Vpos() {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(
-          `${getConfigOrThrow().API_HOST}/${getConfigOrThrow().API_BASEPATH}/${
-            GatewayRoutes.VPOS
-          }/${id}`,
+          `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
           handleResponse,
           onError
         )
@@ -109,6 +109,7 @@ export default function Vpos() {
     } else {
       // Final state - handle response
       handleResponse(resp);
+      setPolling(true);
     }
   };
 
@@ -117,7 +118,7 @@ export default function Vpos() {
       setTimeoutId(
         window.setTimeout(() => {
           setErrorModalOpen(true);
-        }, getConfigOrThrow().API_TIMEOUT)
+        }, config.API_TIMEOUT)
       );
     } else {
       timeoutId && window.clearTimeout(timeoutId);
@@ -127,9 +128,7 @@ export default function Vpos() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfigOrThrow().API_HOST}/${getConfigOrThrow().API_BASEPATH}/${
-        GatewayRoutes.VPOS
-      }/${id}`,
+      `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
       onResponse,
       onError
     );

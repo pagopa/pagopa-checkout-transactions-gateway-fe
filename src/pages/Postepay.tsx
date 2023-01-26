@@ -33,6 +33,7 @@ export default function Index() {
   const [info, setInfo] = React.useState<PollingResponseEntity>();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [loading] = React.useState<boolean>(!!getQueryParam("urlRedirect"));
+  const config = getConfigOrThrow();
 
   const requestId = getQueryParam("requestId");
   const paymentGateway = getQueryParam("paymentGateway") || "postepay";
@@ -50,16 +51,12 @@ export default function Index() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfigOrThrow().API_HOST}/${
-        getConfigOrThrow().API_BASEPATH
-      }/${paymentGateway}/${requestId}`,
+      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );
     transactionPolling(
-      `${getConfigOrThrow().API_HOST}/${
-        getConfigOrThrow().API_BASEPATH
-      }/${paymentGateway}/${requestId}`,
+      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );

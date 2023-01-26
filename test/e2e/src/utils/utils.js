@@ -4,7 +4,7 @@ export const getErrorMessage = async () => {
   await page.waitForXPath(errorDialBoxXPath);
 
   const errorText =
-    'body > div.MuiModal-root.MuiDialog-root.css-zw3mfo-MuiModal-root-MuiDialog-root > div.MuiDialog-container.MuiDialog-scrollPaper.css-hz1bth-MuiDialog-container > div';
+    'h2 > div';
   await page.waitForSelector(errorText);
   const element = await page.$(errorText);
   return await page.evaluate(el => el.textContent, element);

@@ -42,14 +42,14 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
   it('VPOS - Should complete step 0 direct authorization', async () => {
     if (VPOS_USE_PGS_MOCK === "true") {
       //first call mock api for configure direct authorization
-      expect(configureMockStep0DirectAuth(VPOS_MOCK_CONFIGURATION_URL, "00", "00", "00", VPOS_MOCK_API_KEY)).resolves.toBe(200);
+      let mockConfigurationStatusCode = await configureMockStep0DirectAuth(VPOS_MOCK_CONFIGURATION_URL, "00", "00", "00", VPOS_MOCK_API_KEY);
+      expect(mockConfigurationStatusCode).toBe(200);
       let response = await authRequestVpos(VPOS_AUTH_URL, VPOS_API_KEY);
       expect(response.errorHttpStatus).not.toBeDefined();
       await auth0Test(response.requestId, VPOS_EXPECTED_REDIRECTION_URL);
     } else {
       await auth0Test(process.env.VPOS_STEP_0_DIRECT_AUTH_REQUEST_ID, VPOS_EXPECTED_REDIRECTION_URL);
     }
-
   });
 
   it('VPOS - Should show error message for invalid request id', async () => {
@@ -59,7 +59,6 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
     const errorMessage = await getErrorMessage();
 
     expect(errorMessage).toContain('Spiacenti, si è verificato un errore imprevisto');
-
   });
 
 });

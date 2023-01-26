@@ -37,7 +37,6 @@ const handleMethod = (vposUrl: string, methodData: any) => {
     methodData,
     createIFrame(document.body, "myIdFrame", "myFrameName")
   );
-  addIFrameMessageListener(handleMethodMessage);
 };
 
 const handleChallenge = (vposUrl: string, params: any) => {
@@ -89,6 +88,8 @@ export default function Vpos() {
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
+
+  addIFrameMessageListener(handleMethodMessage);
 
   const onError = (_e: string) => {
     setPolling(false);

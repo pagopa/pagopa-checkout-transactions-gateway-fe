@@ -40,7 +40,8 @@ export const handleMethodMessage = async (e: MessageEvent<any>) => {
         e1: MessageEvent<any> // TODO: check origin
       ) =>
         // e1.origin === config.CHECKOUT_PAGOPA_APIM_HOST &&
-        e1.data === "3DS.Notification.Received",
+        //  e1.data === "3DS.Notification.Received",
+        true,
       E.toError
     )(e),
     E.fold(

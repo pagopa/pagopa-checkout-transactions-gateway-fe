@@ -93,7 +93,7 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
   pipe(
     E.fromPredicate(
       (e1: MessageEvent<any>) =>
-        e1.origin === window.location.origin &&
+        // e1.origin === window.location.origin &&
         e1.data === "3DS.Notification.Received",
       E.toError
     )(e),

@@ -8,6 +8,7 @@ import {
   createClient as createPgsClient
 } from "../../generated/pgs/client";
 import { VposResumeRequest } from "../../generated/pgs/VposResumeRequest";
+import { PaymentRequestVposResponse } from "../../generated/pgs/PaymentRequestVposResponse";
 import { UNKNOWN } from "./transactionStatus";
 
 const config = getConfigOrThrow();
@@ -27,41 +28,10 @@ export const getStringFromSessionStorageTask = (
     )
   );
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const handleError = () => {};
-
-export const handleMethodMessage = async (e: MessageEvent<any>) => {
-  if (/^react-devtools/gi.test(e.data.source)) {
-    return;
-  }
-  pipe(
-    E.fromPredicate(
-      (
-        _e1: MessageEvent<any> // TODO: check origin
-      ) =>
-        // e1.origin === config.CHECKOUT_PAGOPA_APIM_HOST &&
-        //  e1.data === "3DS.Notification.Received",
-        true,
-      E.toError
-    )(e),
-    E.fold(
-      () => {
-        handleError();
-      },
-      (_) => {
-        pipe(
-          getStringFromSessionStorageTask("requestId"),
-          TE.chain((requestId: string) => resumeTransactionTask("Y", requestId))
-        );
-      }
-    )
-  );
-};
-
-export const resumeTransactionTask = (
+export const resumePaymentRequestTask = (
   methodCompleted: "Y" | "N" | undefined,
   requestId: string
-): TE.TaskEither<UNKNOWN, number> =>
+): TE.TaskEither<UNKNOWN, string> =>
   pipe(
     TE.tryCatch(
       () =>
@@ -80,7 +50,34 @@ export const resumeTransactionTask = (
           errorOrResponse,
           E.fold(
             () => TE.left(UNKNOWN.value), // TODO: handle error
-            (_responseType) => TE.of(UNKNOWN.value) // TODO: check response status code
+            (response) => TE.of(response.value.requestId)
+          )
+        )
+    )
+  );
+
+export const getPaymentRequestTask = (
+  requestId: string
+): TE.TaskEither<UNKNOWN, PaymentRequestVposResponse> =>
+  pipe(
+    TE.tryCatch(
+      () =>
+        pgsClient.GetVposPaymentRequest({
+          requestId
+        }),
+      () => E.toError
+    ),
+    TE.fold(
+      () => TE.left(UNKNOWN.value),
+      (errorOrResponse) =>
+        pipe(
+          errorOrResponse,
+          E.fold(
+            () => TE.left(UNKNOWN.value),
+            (responseType) =>
+              responseType.status === 200
+                ? TE.of(responseType.value)
+                : TE.left(UNKNOWN.value)
           )
         )
     )

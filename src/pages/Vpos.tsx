@@ -3,6 +3,9 @@ import { Box, CircularProgress, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
+import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
 import { GatewayRoutes } from "../routes/routes";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
@@ -19,7 +22,11 @@ import {
   ResponseTypeEnum,
   StatusEnum
 } from "../generated/pgs/PaymentRequestVposResponse";
-import { handleMethodMessage } from "../utils/transactions/transactionHelpers";
+import {
+  getPaymentRequestTask,
+  getStringFromSessionStorageTask,
+  resumePaymentRequestTask
+} from "../utils/transactions/transactionHelpers";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -77,6 +84,33 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
   ) {
     handleRedirect(resp.clientReturnUrl);
   }
+};
+
+const handleMethodMessage = async (e: MessageEvent<any>) => {
+  if (/^react-devtools/gi.test(e.data.source)) {
+    return;
+  }
+  pipe(
+    E.fromPredicate(
+      (e1: MessageEvent<any>) =>
+        e1.origin === window.location.origin &&
+        e1.data === "3DS.Notification.Received",
+      E.toError
+    )(e),
+    E.fold(
+      (e) => TE.left(e),
+      (_) =>
+        void pipe(
+          getStringFromSessionStorageTask("requestId"),
+          TE.chain((requestId: string) =>
+            pipe(
+              resumePaymentRequestTask("Y", requestId),
+              TE.chain((_) => getPaymentRequestTask(requestId))
+            )
+          )
+        )()
+    )
+  );
 };
 
 export default function Vpos() {

@@ -107,6 +107,11 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
               resumePaymentRequestTask("Y", requestId),
               TE.chain((_) => getPaymentRequestTask(requestId))
             )
+          ),
+          TE.fold(
+            (e) => TE.left(e),
+            // eslint-disable-next-line sonarjs/no-use-of-empty-return-value
+            (paymentRequest) => TE.of(handleResponse(paymentRequest))
           )
         )()
     )

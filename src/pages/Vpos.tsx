@@ -18,6 +18,7 @@ import {
   ResponseTypeEnum,
   StatusEnum
 } from "../generated/pgs/PaymentRequestVposResponse";
+import { threeDSData } from "../utils/threedsdata";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -49,7 +50,7 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.METHOD
   ) {
-    handleMethod(resp.vposUrl, {});
+    handleMethod(resp.vposUrl, JSON.stringify(threeDSData));
   } else if (
     resp.status === StatusEnum.CREATED &&
     resp.vposUrl !== undefined &&

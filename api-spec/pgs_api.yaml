@@ -3,7 +3,7 @@ info:
   title: OpenAPI definition for external payment-transactions-gateway
   version: v0
 servers:
-  - url: ${host}/payment-gateway
+  - url: /payment-transactions-gateway/external/v1
 paths:
   /request-payments/postepay/{requestId}:
     get:

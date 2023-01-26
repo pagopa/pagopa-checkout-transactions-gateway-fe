@@ -46,8 +46,8 @@ export default function XPay() {
       setIntervalId(
         transactionPolling(
           `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
-        GatewayRoutes.XPAY
-      }/${id}`,
+            GatewayRoutes.XPAY
+          }/${id}`,
           overwriteDom,
           onError
         )

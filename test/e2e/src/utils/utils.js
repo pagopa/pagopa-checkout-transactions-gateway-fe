@@ -22,7 +22,7 @@ export const getNexiErrorMessage = async () => {
 };
 
 export const waitForNexiAuthPage = async () => {
-  page.waitForRequest(request => request.url().includes('int-ecommerce.nexi.it') && request.method() === 'GET');
+  await page.waitForRequest(request => request.url().includes('int-ecommerce.nexi.it') && request.method() === 'GET');
 };
 
 export const insertNexiOTP = async () => {

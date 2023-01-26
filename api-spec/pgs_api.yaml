@@ -10,7 +10,7 @@ paths:
       summary: PGS webview polling call
       tags:
         - Postepay-external
-      operationId: webviewPolling
+      operationId: GetPostepayPaymentRequest
       parameters:
         - in: path
           name: requestId
@@ -51,78 +51,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PollingResponseEntity'
-  /request-payments/xpay/{requestId}/resume:
-    get:
-      summary: payment request to xPay
-      tags:
-        - XPay-external
-      operationId: resumeXpayPayment
-      parameters:
-        - name: requestId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: esito
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: idOperazione
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: xpayNonce
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: timeStamp
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: mac
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: resumeType
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        '302':
-          description: OK-FOUND
-        '400':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: string
-                example: Bad Request - mandatory parameters missing
-        '404':
-          description: TimeOut
-          content:
-            application/json:
-              schema:
-                type: string
-                example: RequestId not Found
-        '500':
-          description: Internal server Error
-          content:
-            application/json:
-              schema:
-                type: string
-                example: 'Error during payment for requestId: xxx '
   /request-payments/xpay/{requestId}:
     get:
       summary: retrieve XPay payment request
       tags:
         - XPay-external
-      operationId: authResponseXpay
+      operationId: GetXpayPaymentRequest
       parameters:
         - in: path
           required: true
@@ -151,12 +85,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/XPayPollingResponseEntity404'
-  /request-payments/creditCard/{requestId}:
+  /request-payments/vpos/{requestId}:
     get:
-      summary: retrieve CreditCard payment request
+      summary: retrieve vpos payment request
       tags:
         - Vpos-external
-      operationId: getCreditCard
+      operationId: GetVposPaymentRequest
       parameters:
         - in: path
           required: true
@@ -191,12 +125,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaymentRequestVposErrorResponse'
-  /request-payments/creditCard/{requestId}/resume/method:
+  /request-payments/vpos/{requestId}/resume/method:
     post:
-      summary: resume CreditCard payment request
+      summary: resume vpos payment request
       tags:
         - Vpos-external
-      operationId: resumeCreditCard
+      operationId: ResumeVposPaymentRequest
       parameters:
         - in: path
           required: true
@@ -216,35 +150,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreditCardResumeRequest'
+              $ref: '#/components/schemas/VposResumeRequest'
         required: true
       responses:
-        '302':
-          description: FOUND, Redirect to url
-  /request-payments/creditCard/{requestId}/resume/challenge:
-    post:
-      summary: resume CreditCard payment request
-      tags:
-        - Vpos-external
-      operationId: resumeCreditCardChallenge
-      parameters:
-        - in: path
-          required: true
-          name: requestId
-          description: Id of the request
-          example: 41bc2409-5926-4aa9-afcc-797c7054e467
-          schema:
-            type: string
-        - in: header
-          name: MDC-Fields
-          description: MDC information
-          example: 97g10t83x7bb0437bbc50sdf58e970gt
-          schema:
-            type: string
-          required: false
-      responses:
-        '302':
-          description: FOUND, Redirect to url
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VposResumeResponse'
 components:
   schemas:
     PollingResponseEntity:
@@ -283,50 +197,29 @@ components:
         html:
           type: string
           description: HTML received in response from XPay
-          example: >
+          example: |
             <html>
-
             <head>
-
             <title>
-
             Gestione Pagamento Fraud detection</title>
-
             <script type="text/javascript" language="javascript">
-
             function moveWindow() {
                 document.tdsFraudForm.submit();
             }
-
             </script>
-
             </head>
-
             <body>
-
-            <form name="tdsFraudForm"
-            action="https://coll-ecommerce.nexi.it/ecomm/ecomm/TdsMerchantServlet"
-            method="POST">
-
+            <form name="tdsFraudForm" action="https://coll-ecommerce.nexi.it/ecomm/ecomm/TdsMerchantServlet" method="POST">
             <input type="hidden" name="action"     value="fraud">
-
             <input type="hidden" name="merchantId" value="31320986">
-
-            <input type="hidden" name="description"
-            value="7090069933_1606392234626">
-
+            <input type="hidden" name="description" value="7090069933_1606392234626">
             <input type="hidden" name="gdiUrl"      value="">
-
             <input type="hidden" name="gdiNotify"   value="">
-
             </form>
-
             <script type="text/javascript">
               moveWindow();
             </script>
-
             </body>
-
             </html>
         status:
           type: string
@@ -343,8 +236,7 @@ components:
         redirectUrl:
           type: string
           description: redirection URL after a response from XPay has been received
-          example: >-
-            http://localhost:8080/payment-gateway/request-payments/xpay/2d75ebf8-c789-46a9-9a22-edf1976a8917
+          example: http://localhost:8080/payment-gateway/request-payments/xpay/2d75ebf8-c789-46a9-9a22-edf1976a8917
     XPayPollingResponseEntity404:
       type: object
       required:
@@ -394,7 +286,7 @@ components:
         reason:
           type: string
           example: Error for RequestId
-    CreditCardResumeRequest:
+    VposResumeRequest:
       type: object
       required:
         - methodCompleted
@@ -402,3 +294,12 @@ components:
         methodCompleted:
           type: string
           example: 'Y'
+    VposResumeResponse:
+      type: object
+      required:
+        - requestId
+      properties:
+        requestId:
+          type: string
+          format: uuid
+          example: 1f3af548-f9d3-423f-b7b0-4e68948d41d2

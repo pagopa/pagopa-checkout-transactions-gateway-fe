@@ -18,7 +18,6 @@ import {
   ResponseTypeEnum,
   StatusEnum
 } from "../generated/pgs/PaymentRequestVposResponse";
-import { threeDSData } from "../utils/threedsdata";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -50,7 +49,16 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.METHOD
   ) {
-    handleMethod(resp.vposUrl, JSON.stringify(threeDSData));
+    handleMethod(
+      resp.vposUrl,
+      // Workaround pending PGS development
+      Buffer.from(
+        JSON.stringify({
+          threeDSMethodNotificationUrl: `https://api.dev.platform.pagopa.it/payment-transactions-gateway/external/v1/request-payments/vpos/${resp.requestId}/method/notifications`,
+          threeDSServerTransID: resp.requestId
+        })
+      ).toString("base64")
+    );
   } else if (
     resp.status === StatusEnum.CREATED &&
     resp.vposUrl !== undefined &&

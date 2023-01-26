@@ -51,9 +51,7 @@ export const handleMethodMessage = async (e: MessageEvent<any>) => {
       (_) => {
         pipe(
           getStringFromSessionStorageTask("requestId"),
-          TE.chain((requestId: string) =>
-            pipe(resumeTransactionTask("Y", requestId))
-          )
+          TE.chain((requestId: string) => resumeTransactionTask("Y", requestId))
         );
       }
     )

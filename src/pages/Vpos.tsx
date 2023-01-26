@@ -32,6 +32,7 @@ const layoutStyle: SxProps<Theme> = {
 const config = getConfigOrThrow();
 
 const handleMethod = (vposUrl: string, methodData: any) => {
+  addIFrameMessageListener(handleMethodMessage);
   start3DS2MethodStep(
     vposUrl,
     methodData,
@@ -88,8 +89,6 @@ export default function Vpos() {
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
-
-  addIFrameMessageListener(handleMethodMessage);
 
   const onError = (_e: string) => {
     setPolling(false);

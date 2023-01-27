@@ -6,15 +6,18 @@ describe('Transaction gateway FE xpay authorization tests', () => {
    */
   const PAYMENT_TRANSACTION_GATEWAY_FE_URL = process.env.PAYMENT_TRANSACTION_GATEWAY_FE_URL;
 
-  /**
-   * Increase default test timeout (5000ms)
+   /**
+   * Increase default test timeout (180000ms)
    * to support entire payment flow
-   */
-  jest.setTimeout(180000);
-
-  beforeEach(async () => {
-    await page.setViewport({ width: 1200, height: 907 });
-  });
+    */
+   jest.setTimeout(60000);
+ 
+ 
+   beforeAll( async () => {
+     await page.setViewport({ width: 1200, height: 907 });
+     await page.setDefaultNavigationTimeout(60000);
+     await page.setDefaultTimeout(60000);
+   });
 
   it('xpay - Should return 404 not found with wrong requestId', async () => {
     const WRONG_REQUEST_ID = process.env.WRONG_REQUEST_ID;

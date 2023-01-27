@@ -122,14 +122,10 @@ stages:
              cd test/e2e
              yarn install && yarn test
             displayName: 'Run yarn test'
-            workingDirectory: pagopa-checkout-transactions-gateway-fe
-          - script: | 
-              docker run --add-host=host.docker.internal:host-gateway --name=ui_test ui_test
-            displayName: 'Run UI test container'
             continueOnError: true 
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |
-              docker cp ui_test:/puppeteer/test_reports  test_reports
+              cp test/e2e/test_reports  test_reports
             displayName: 'Copy test result'
             continueOnError: true 
             workingDirectory: pagopa-checkout-transactions-gateway-fe

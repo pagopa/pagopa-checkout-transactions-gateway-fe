@@ -48,7 +48,7 @@ stages:
              yarn generate
           displayName: 'Generate'
         - script: |
-            API_HOST=http://localhost:1234 API_BASEPATH=transaction-gateway API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+            API_HOST=http://localhost:1234 API_BASEPATH=request-payments API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
           displayName: 'Build'
   
   - stage: Static_Analysis

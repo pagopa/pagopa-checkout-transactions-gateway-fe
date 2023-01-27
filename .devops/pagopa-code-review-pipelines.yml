@@ -120,8 +120,8 @@ stages:
             displayName: 'Wait for FE to be up and running'
           - script: |
              cd test/e2e
-             yarn test
-            displayName: 'Build test image'
+             yarn install && yarn test
+            displayName: 'Run yarn test'
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: | 
               docker run --add-host=host.docker.internal:host-gateway --name=ui_test ui_test

@@ -126,7 +126,7 @@ stages:
             continueOnError: true 
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |
-              cp test/e2e/test_reports  test_reports
+              cp -r test/e2e/test_reports  test_reports
             displayName: 'Copy test result'
             continueOnError: true 
             workingDirectory: pagopa-checkout-transactions-gateway-fe

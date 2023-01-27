@@ -112,8 +112,9 @@ stages:
             displayName: 'Setup env for e2e tests'
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |
+             cp env.code_review .env
              nohup yarn start &
-            displayName: 'Start local transaction gateway FE'
+            displayName: 'Setup env and Start local transaction gateway FE'
             workingDirectory: pagopa-checkout-transactions-gateway-fe
           - script: |
               while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:1234)" != "200" ]]; do sleep 5; done

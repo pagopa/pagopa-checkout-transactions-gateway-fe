@@ -36,7 +36,6 @@ describe('Transaction gateway FE VPOS authorization tests', () => {
 
   it('VPOS - Should show error message for invalid request id', async () => {
     const requestId = process.env.VPOS_404_WRONG_REQUEST_ID;
-
     await page.goto(`${process.env.PAYMENT_TRANSACTION_GATEWAY_FE_URL}/vpos/${requestId}`);
     const errorMessage = await getErrorMessage();
 

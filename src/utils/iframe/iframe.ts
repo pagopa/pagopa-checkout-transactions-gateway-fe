@@ -1,4 +1,4 @@
-// import { onBrowserUnload } from "../eventListeners";
+import { onBrowserUnload } from "../eventListener";
 
 function createForm(
   formName: string,
@@ -72,8 +72,14 @@ export function start3DS2AcsChallengeStep(
   params: any,
   container: any
 ) {
-  // window.removeEventListener("beforeunload", onBrowserUnload);
+  window.removeEventListener("beforeunload", onBrowserUnload);
   const form = createForm("acsChallengeForm", acsUrl, "_self", params);
   container.appendChild(form);
   form.submit();
+}
+
+export function addIFrameMessageListener(
+  callbackFunc: (e: MessageEvent<any>) => Promise<void>
+) {
+  window.addEventListener("message", callbackFunc, false);
 }

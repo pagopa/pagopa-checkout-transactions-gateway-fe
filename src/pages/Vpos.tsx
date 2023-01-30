@@ -3,12 +3,16 @@ import { Box, CircularProgress, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
+import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
 import { GatewayRoutes } from "../routes/routes";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfig } from "../utils/config";
+import { getConfigOrThrow } from "../utils/config/config";
 import { navigate } from "../utils/navigation";
 import {
+  addIFrameMessageListener,
   createIFrame,
   start3DS2AcsChallengeStep,
   start3DS2MethodStep
@@ -18,6 +22,11 @@ import {
   ResponseTypeEnum,
   StatusEnum
 } from "../generated/pgs/PaymentRequestVposResponse";
+import {
+  getPaymentRequestTask,
+  getStringFromSessionStorageTask,
+  resumePaymentRequestTask
+} from "../utils/transactions/transactionHelpers";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -27,7 +36,10 @@ const layoutStyle: SxProps<Theme> = {
   alignItems: "center"
 };
 
+const config = getConfigOrThrow();
+
 const handleMethod = (vposUrl: string, methodData: any) => {
+  addIFrameMessageListener(handleMethodMessage);
   start3DS2MethodStep(
     vposUrl,
     methodData,
@@ -49,13 +61,22 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.METHOD
   ) {
-    handleMethod(resp.vposUrl, {});
+    sessionStorage.setItem("requestId", resp.requestId);
+    handleMethod(
+      resp.vposUrl, // Workaround pending PGS development
+      Buffer.from(
+        JSON.stringify({
+          threeDSMethodNotificationUrl: `https://api.dev.platform.pagopa.it/payment-transactions-gateway/external/v1/request-payments/vpos/${resp.requestId}/method/notifications`,
+          threeDSServerTransID: resp.requestId
+        })
+      ).toString("base64")
+    ); // TODO: recover 3ds2MethodData
   } else if (
     resp.status === StatusEnum.CREATED &&
     resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.CHALLENGE
   ) {
-    handleChallenge(resp.vposUrl, {});
+    handleChallenge(resp.vposUrl, {}); // TODO: recover challenge data
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||
       resp.status === StatusEnum.DENIED) &&
@@ -63,6 +84,38 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
   ) {
     handleRedirect(resp.clientReturnUrl);
   }
+};
+
+const handleMethodMessage = async (e: MessageEvent<any>) => {
+  if (/^react-devtools/gi.test(e.data.source)) {
+    return;
+  }
+  pipe(
+    E.fromPredicate(
+      (e1: MessageEvent<any>) =>
+        // e1.origin === window.location.origin &&
+        e1.data === "3DS.Notification.Received",
+      E.toError
+    )(e),
+    E.fold(
+      (e) => TE.left(e),
+      (_) =>
+        void pipe(
+          getStringFromSessionStorageTask("requestId"),
+          TE.chain((requestId: string) =>
+            pipe(
+              resumePaymentRequestTask("Y", requestId),
+              TE.chain((_) => getPaymentRequestTask(requestId))
+            )
+          ),
+          TE.fold(
+            (e) => TE.left(e),
+            // eslint-disable-next-line sonarjs/no-use-of-empty-return-value
+            (paymentRequest) => TE.of(handleResponse(paymentRequest))
+          )
+        )()
+    )
+  );
 };
 
 export default function Vpos() {
@@ -87,9 +140,7 @@ export default function Vpos() {
       setErrorModalOpen(true);
       setIntervalId(
         transactionPolling(
-          `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
-            GatewayRoutes.VPOS
-          }/${id}`,
+          `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
           handleResponse,
           onError
         )
@@ -97,6 +148,7 @@ export default function Vpos() {
     } else {
       // Final state - handle response
       handleResponse(resp);
+      setPolling(true);
     }
   };
 
@@ -105,7 +157,7 @@ export default function Vpos() {
       setTimeoutId(
         window.setTimeout(() => {
           setErrorModalOpen(true);
-        }, getConfig().API_TIMEOUT)
+        }, config.API_TIMEOUT)
       );
     } else {
       timeoutId && window.clearTimeout(timeoutId);
@@ -115,9 +167,7 @@ export default function Vpos() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfig().API_HOST}/${getConfig().API_BASEPATH}/${
-        GatewayRoutes.VPOS
-      }/${id}`,
+      `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
       onResponse,
       onError
     );

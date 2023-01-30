@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import ErrorModal from "../components/modals/ErrorModal";
 import { Channel, PollingResponseEntity } from "../models/transactions";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfig } from "../utils/config";
+import { getConfigOrThrow } from "../utils/config/config";
 import {
   getCurrentLocation,
   getQueryParam,
@@ -33,6 +33,7 @@ export default function Index() {
   const [info, setInfo] = React.useState<PollingResponseEntity>();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [loading] = React.useState<boolean>(!!getQueryParam("urlRedirect"));
+  const config = getConfigOrThrow();
 
   const requestId = getQueryParam("requestId");
   const paymentGateway = getQueryParam("paymentGateway") || "postepay";
@@ -50,16 +51,12 @@ export default function Index() {
 
   React.useEffect(() => {
     transactionFetch(
-      `${getConfig().API_HOST}/${
-        getConfig().API_BASEPATH
-      }/${paymentGateway}/${requestId}`,
+      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );
     transactionPolling(
-      `${getConfig().API_HOST}/${
-        getConfig().API_BASEPATH
-      }/${paymentGateway}/${requestId}`,
+      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
       setInfo,
       onError
     );

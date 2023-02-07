@@ -3,6 +3,8 @@ import { Box, CircularProgress, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import ErrorModal from "../components/modals/ErrorModal";
 import { XPayResponse } from "../models/transactions";
 import { GatewayRoutes } from "../routes/routes";
@@ -34,11 +36,12 @@ export default function XPay() {
   };
 
   const overwriteDom = (resp: XPayResponse) => {
-    if (resp.html) {
-      document.open("text/html");
-      document.write("<!DOCTYPE HTML>" + resp.html);
-      document.close();
-    }
+    pipe(
+      O.fromNullable(resp.html),
+      O.map((xpayHtml) => {
+        document.write(xpayHtml);
+      })
+    );
   };
 
   const onResponse = (resp: XPayResponse) => {

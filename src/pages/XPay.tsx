@@ -6,8 +6,14 @@ import { useParams } from "react-router-dom";
 import ErrorModal from "../components/modals/ErrorModal";
 import { XPayResponse } from "../models/transactions";
 import { GatewayRoutes } from "../routes/routes";
+import { apiPgsClient } from "../utils/api/client";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfigOrThrow } from "../utils/config/config";
+import * as O from "fp-ts/Option";
+import * as TE from "fp-ts/TaskEither";
+import * as T from "fp-ts/Task";
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -70,12 +76,31 @@ export default function XPay() {
   }, [polling, errorModalOpen]);
 
   React.useEffect(() => {
-    transactionFetch(
-      `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.XPAY}/${id}`,
-      onResponse,
-      onError
-    );
-  }, []);
+    pipe(
+      TE.tryCatch(
+        () => {
+          return apiPgsClient.GetXpayPaymentRequest({requestId: id || ""});
+        },
+        () => {return "Generic Server Error";}
+    ),
+    TE.fold(
+      (err) => {
+        return TE.left(err);
+      },
+      (errorOrResponse) =>
+        pipe(
+          errorOrResponse,
+          E.fold(
+            () => TE.left("Generic Server Error"),
+            (response) => {
+              if (response.status === 200) {
+                overwriteDom(response.value as XPayResponse);
+              }
+            }
+          )
+        )
+      )
+  )});
 
   return (
     <Box sx={layoutStyle} aria-live="polite">

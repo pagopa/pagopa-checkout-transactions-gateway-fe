@@ -8,6 +8,8 @@ import { XPayResponse } from "../models/transactions";
 import { GatewayRoutes } from "../routes/routes";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfigOrThrow } from "../utils/config/config";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -34,11 +36,12 @@ export default function XPay() {
   };
 
   const overwriteDom = (resp: XPayResponse) => {
-    if (resp.html) {
-      document.open("text/html");
-      document.write("<!DOCTYPE HTML>" + resp.html);
-      document.close();
-    }
+    pipe(
+      O.fromNullable(resp.html),
+      O.map((xpayHtml) => {
+        document.write(xpayHtml);
+      })
+    );
   };
 
   const onResponse = (resp: XPayResponse) => {

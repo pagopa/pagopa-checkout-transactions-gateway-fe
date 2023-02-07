@@ -3,13 +3,13 @@ import { Box, CircularProgress, SxProps, Theme } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
+import { pipe } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 import ErrorModal from "../components/modals/ErrorModal";
 import { XPayResponse } from "../models/transactions";
 import { GatewayRoutes } from "../routes/routes";
 import { transactionFetch, transactionPolling } from "../utils/apiService";
 import { getConfigOrThrow } from "../utils/config/config";
-import { pipe } from "fp-ts/function";
-import * as O from "fp-ts/Option";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",

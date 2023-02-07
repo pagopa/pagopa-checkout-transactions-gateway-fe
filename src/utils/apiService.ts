@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import { getConfigOrThrow } from "./config/config";
-
 export function transactionFetch(
   url: string,
   onResponse: (data: any) => void,

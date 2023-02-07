@@ -11,15 +11,16 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import * as TE from "fp-ts/TaskEither";
+import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
 import { Channel, PollingResponseEntity } from "../models/transactions";
-import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfigOrThrow } from "../utils/config/config";
 import {
   getCurrentLocation,
   getQueryParam,
   navigate
 } from "../utils/navigation";
+import { pgsClient } from "../utils/api/client";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -33,7 +34,6 @@ export default function Index() {
   const [info, setInfo] = React.useState<PollingResponseEntity>();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [loading] = React.useState<boolean>(!!getQueryParam("urlRedirect"));
-  const config = getConfigOrThrow();
 
   const requestId = getQueryParam("requestId");
   const paymentGateway = getQueryParam("paymentGateway") || "postepay";
@@ -50,16 +50,16 @@ export default function Index() {
   };
 
   React.useEffect(() => {
-    transactionFetch(
-      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
-      setInfo,
-      onError
-    );
-    transactionPolling(
-      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
-      setInfo,
-      onError
-    );
+    pipe(
+      TE.tryCatch(
+        () =>
+          pgsClient.GetPostepayPaymentRequest({
+            requestId: requestId as string
+          }),
+        () => onError
+      ),
+      TE.map(() => setInfo)
+    )();
   }, []);
 
   React.useEffect(() => {

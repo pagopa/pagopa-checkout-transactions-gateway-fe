@@ -9,7 +9,6 @@ import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
 import { XPayResponse } from "../models/transactions";
 import { pgsXPAYClient } from "../utils/api/client";
-// import { getConfigOrThrow } from "../utils/config/config";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",

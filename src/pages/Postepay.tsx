@@ -20,7 +20,7 @@ import {
   getQueryParam,
   navigate
 } from "../utils/navigation";
-import { pgsClient } from "../utils/api/client";
+import { pgsXPAYClient } from "../utils/api/client";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -50,10 +50,10 @@ export default function Index() {
   };
 
   React.useEffect(() => {
-    pipe(
+    void pipe(
       TE.tryCatch(
         () =>
-          pgsClient.GetPostepayPaymentRequest({
+          pgsXPAYClient.GetPostepayPaymentRequest({
             requestId: requestId as string
           }),
         () => onError

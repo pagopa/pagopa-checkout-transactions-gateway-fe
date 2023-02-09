@@ -42,9 +42,6 @@ export const pgsXPAYClient = createClient({
   basePath: ""
 });*/
 
-
-
-
 export const pgsXPAYClient = createClient({
   baseUrl: conf.API_HOST,
   fetchApi: constantPollingWithPromisePredicateFetch(

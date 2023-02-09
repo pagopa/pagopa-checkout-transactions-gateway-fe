@@ -145,9 +145,13 @@ components:
       required:
         - channel
         - authOutcome
+        - logoResourcePath
         - urlRedirect
         - error
       properties:
+        logoResourcePath:
+          type: string
+          description: logo
         channel:
           type: string
           description: request payment channel (APP or WEB)

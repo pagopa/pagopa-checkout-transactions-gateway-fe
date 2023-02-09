@@ -12,15 +12,17 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
-import { Channel, PollingResponseEntity } from "../models/transactions";
+import { Channel } from "../models/transactions";
 import {
   getCurrentLocation,
   getQueryParam,
   navigate
 } from "../utils/navigation";
-import { pgsXPAYClient } from "../utils/api/client";
+import { postepayPgsClient } from "../utils/api/client";
+import { PollingResponseEntity } from "../generated/pgs/PollingResponseEntity";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -45,7 +47,7 @@ export default function Index() {
   const i18nTitle = loading ? "index.loadingTitle" : "index.title";
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
-  const onError = (_e: string) => {
+  const onError = () => {
     setErrorModalOpen(true);
   };
 
@@ -53,12 +55,17 @@ export default function Index() {
     void pipe(
       TE.tryCatch(
         () =>
-          pgsXPAYClient.GetPostepayPaymentRequest({
+          postepayPgsClient.GetPostepayPaymentRequest({
             requestId: requestId as string
           }),
-        () => onError
+        () => onError()
       ),
-      TE.map(() => setInfo)
+      TE.map((errorOrResponse) =>
+        pipe(
+          errorOrResponse,
+          E.map((response) => setInfo(response.value))
+        )
+      )
     )();
   }, []);
 
@@ -73,7 +80,7 @@ export default function Index() {
     ) {
       navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
     }
-    info?.authOutcome && navigate(info?.clientResponseUrl);
+    info?.authOutcome && navigate(info?.clientResponseUrl || "");
   }, [info]);
 
   const handleClick = React.useCallback(() => {

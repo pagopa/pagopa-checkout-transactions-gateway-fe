@@ -12,7 +12,6 @@ const retries: number = 10;
 const delay: number = 3000;
 const timeout: Millisecond = conf.API_TIMEOUT as Millisecond;
 
-
 export const postepayPgsClient = createClient({
   baseUrl: conf.API_HOST,
   fetchApi: constantPollingWithPromisePredicateFetch(
@@ -35,7 +34,7 @@ export const pgsXPAYClient = createClient({
     async (r: Response): Promise<boolean> => {
       const jsonResponse = await r.clone().json();
       return (
-        r.status !== 200 /* || !r.ok */ ||
+        r.status !== 200 ||
         pipe(
           XPayPollingResponseEntity.decode(jsonResponse),
           E.fold(

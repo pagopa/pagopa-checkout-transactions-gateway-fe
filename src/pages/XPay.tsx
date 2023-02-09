@@ -27,22 +27,6 @@ export default function XPay() {
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
 
-  /* export const pgsClient = createClient({
-    baseUrl: conf.API_HOST,
-    fetchApi: constantPollingWithPromisePredicateFetch(
-      DeferredPromise<boolean>().e1,
-      retries,
-      delay,
-      timeout,
-      async (r: Response): Promise<boolean> => {
-        return (
-          r.status === 200 
-        );
-      }
-    ),
-    basePath: ""
-  }); */
-
   const onError = () => {
     setPolling(false);
     setErrorModalOpen(true);

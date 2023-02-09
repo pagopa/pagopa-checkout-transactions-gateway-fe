@@ -11,36 +11,6 @@ const conf = getConfigOrThrow();
 const retries: number = 10;
 const delay: number = 3000;
 const timeout: Millisecond = conf.API_TIMEOUT as Millisecond;
-/*
-export const pgsXPAYClient = createClient({
-  baseUrl: conf.API_HOST,
-  fetchApi: constantPollingWithPromisePredicateFetch(
-    DeferredPromise<boolean>().e1,
-    retries,
-    delay,
-    timeout,
-    async (r: Response): Promise<boolean> =>
-      pipe(
-        E.fromPredicate(
-          (resp: Response) => resp.status !== 200,
-          () => E.left(false)
-        )(r),
-        E.map(async (resp) => {
-          const jsonBody = (await resp
-            .clone()
-            .json()) as XPayPollingResponseEntity;
-          return pipe(
-            E.fromPredicate(
-              () => jsonBody.status !== "CREATED",
-              () => E.left(false)
-            )
-          );
-        }),
-        E.isRight
-      )
-  ),
-  basePath: ""
-});*/
 
 export const pgsXPAYClient = createClient({
   baseUrl: conf.API_HOST,
@@ -52,16 +22,16 @@ export const pgsXPAYClient = createClient({
     async (r: Response): Promise<boolean> => {
       const jsonResponse = await r.clone().json();
       return (
-        r.status !== 200 ||
+        r.status !== 200 /* || !r.ok */ ||
         pipe(
           XPayPollingResponseEntity.decode(jsonResponse),
           E.fold(
-            _ => false,
-            (resp) => (resp.status === "CREATED")),
+            (_) => false,
+            (resp: XPayPollingResponseEntity) => resp.status !== "CREATED"
+          )
         )
       );
     }
   ),
-  basePath: ""
+  basePath: conf.API_BASEPATH
 });
-

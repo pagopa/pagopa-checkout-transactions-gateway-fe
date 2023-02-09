@@ -7,9 +7,6 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
-import { GatewayRoutes } from "../routes/routes";
-import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfigOrThrow } from "../utils/config/config";
 import { navigate } from "../utils/navigation";
 import {
   addIFrameMessageListener,
@@ -37,8 +34,6 @@ const layoutStyle: SxProps<Theme> = {
   alignItems: "center"
 };
 
-const config = getConfigOrThrow();
-
 const handleMethod = (vposUrl: string, methodData: any) => {
   addIFrameMessageListener(handleMethodMessage);
   start3DS2MethodStep(
@@ -58,13 +53,11 @@ const handleRedirect = (vposUrl: string) => {
 
 const handleResponse = (resp: PaymentRequestVposResponse) => {
   if (
-    resp.status === StatusEnum.CREATED &&
-    resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.METHOD
   ) {
     sessionStorage.setItem("requestId", resp.requestId);
     handleMethod(
-      resp.vposUrl, // Workaround pending PGS development
+      resp.vposUrl || "", // Workaround pending PGS development
       Buffer.from(
         JSON.stringify({
           threeDSMethodNotificationUrl: `https://api.dev.platform.pagopa.it/payment-transactions-gateway/external/v1/request-payments/vpos/${resp.requestId}/method/notifications`,
@@ -73,11 +66,9 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
       ).toString("base64")
     ); // TODO: recover 3ds2MethodData
   } else if (
-    resp.status === StatusEnum.CREATED &&
-    resp.vposUrl !== undefined &&
     resp.responseType === ResponseTypeEnum.CHALLENGE
   ) {
-    handleChallenge(resp.vposUrl, {}); // TODO: recover challenge data
+    handleChallenge(resp.vposUrl || "", {}); // TODO: recover challenge data
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||
       resp.status === StatusEnum.DENIED) &&
@@ -124,8 +115,6 @@ export default function Vpos() {
   const { id } = useParams();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
-  const [timeoutId, setTimeoutId] = React.useState<number>();
-  const [intervalId, setIntervalId] = React.useState<NodeJS.Timer>();
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
@@ -136,22 +125,9 @@ export default function Vpos() {
   };
 
   const onResponse = (resp: PaymentRequestVposResponse) => {
-    handleResponse(resp);
     setPolling(true);
+    handleResponse(resp);
   };
-
-  React.useEffect(() => {
-    if (polling && !errorModalOpen) {
-      setTimeoutId(
-        window.setTimeout(() => {
-          setErrorModalOpen(true);
-        }, config.API_TIMEOUT)
-      );
-    } else {
-      timeoutId && window.clearTimeout(timeoutId);
-      intervalId && clearInterval(intervalId);
-    }
-  }, [polling, errorModalOpen]);
 
   React.useEffect(() => {
     void pipe(
@@ -165,7 +141,9 @@ export default function Vpos() {
       TE.map((errorOrResponse) =>
         pipe(
           errorOrResponse,
-          E.map((response) => onResponse(response.value as PaymentRequestVposResponse))
+          E.map((response) =>
+            onResponse(response.value as PaymentRequestVposResponse)
+          )
         )
       )
     )();

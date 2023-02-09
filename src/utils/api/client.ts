@@ -37,17 +37,12 @@ export const vposPgsClient = createClient({
     async (r: Response): Promise<boolean> => {
       const jsonResponse = await r.clone().json();
       return (
-        r.status !== 200 &&
-        !pipe(
+        r.status !== 200 ||
+        pipe(
           PaymentRequestVposResponse.decode(jsonResponse),
-          E.chain((json) =>
-            E.of(
-              json.status !== StatusEnum.CREATED || json.vposUrl === undefined
-                ? E.right(r)
-                : E.left(E.toError)
-            )
-          ),
-          E.isRight
+          E.fold(
+            _ => false,
+            (resp) => (resp.status === StatusEnum.CREATED && resp.vposUrl === undefined)),
         )
       );
     }

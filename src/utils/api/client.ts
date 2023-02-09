@@ -1,23 +1,22 @@
-// import { agent } from "@pagopa/ts-commons";
-// import {
-//   AbortableFetch,
-//   setFetchTimeout,
-//   toFetch
-// } from "@pagopa/ts-commons/lib/fetch";
-// import { Millisecond } from "@pagopa/ts-commons/lib/units";
-// import { createClient } from "../../../generated/definitions/gateway-transactions-api/client";
-// import { getConfig } from "../config";
+import { DeferredPromise } from "@pagopa/ts-commons//lib/promises";
+import { Millisecond } from "@pagopa/ts-commons//lib/units";
+import { createClient } from "../../generated/pgs/client";
+import { getConfigOrThrow } from "../config/config";
+import { constantPollingWithPromisePredicateFetch } from "../api/fetch";
 
-// const abortableFetch = AbortableFetch(agent.getHttpFetch(process.env));
-// const fetchWithTimeout = toFetch(
-//   setFetchTimeout(getConfig().API_TIMEOUT as Millisecond, abortableFetch)
-// );
-// // tslint:disable-next-line: no-any
-// const fetchApi: typeof fetchWithTimeout =
-//   fetch as any as typeof fetchWithTimeout;
+const conf = getConfigOrThrow();
+const retries: number = 10;
+const delay: number = 3000;
+const timeout: Millisecond = conf.API_TIMEOUT as Millisecond;
 
-// export const apiTransactionsClient = createClient({
-//   baseUrl: getConfig().API_HOST,
-//   basePath: getConfig().API_BASEPATH,
-//   fetchApi
-// });
+export const postepayPgsClient = createClient({
+  baseUrl: conf.API_HOST,
+  fetchApi: constantPollingWithPromisePredicateFetch(
+    DeferredPromise<boolean>().e1,
+    retries,
+    delay,
+    timeout,
+    async (r: Response): Promise<boolean> => r.status !== 200
+  ),
+  basePath: conf.API_BASEPATH
+});

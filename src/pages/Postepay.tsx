@@ -11,15 +11,18 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
-import { Channel, PollingResponseEntity } from "../models/transactions";
-import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfigOrThrow } from "../utils/config/config";
+import { Channel } from "../models/transactions";
 import {
   getCurrentLocation,
   getQueryParam,
   navigate
 } from "../utils/navigation";
+import { postepayPgsClient } from "../utils/api/client";
+import { PollingResponseEntity } from "../generated/pgs/PollingResponseEntity";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -33,7 +36,6 @@ export default function Index() {
   const [info, setInfo] = React.useState<PollingResponseEntity>();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [loading] = React.useState<boolean>(!!getQueryParam("urlRedirect"));
-  const config = getConfigOrThrow();
 
   const requestId = getQueryParam("requestId");
   const paymentGateway = getQueryParam("paymentGateway") || "postepay";
@@ -45,21 +47,26 @@ export default function Index() {
   const i18nTitle = loading ? "index.loadingTitle" : "index.title";
   const i18nBody = loading ? "index.loadingBody" : "index.body";
 
-  const onError = (_e: string) => {
+  const onError = () => {
     setErrorModalOpen(true);
   };
 
   React.useEffect(() => {
-    transactionFetch(
-      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
-      setInfo,
-      onError
-    );
-    transactionPolling(
-      `${config.API_HOST}/${config.API_BASEPATH}/${paymentGateway}/${requestId}`,
-      setInfo,
-      onError
-    );
+    void pipe(
+      TE.tryCatch(
+        () =>
+          postepayPgsClient.GetPostepayPaymentRequest({
+            requestId: requestId as string
+          }),
+        () => onError()
+      ),
+      TE.map((errorOrResponse) =>
+        pipe(
+          errorOrResponse,
+          E.map((response) => setInfo(response.value))
+        )
+      )
+    )();
   }, []);
 
   React.useEffect(() => {
@@ -73,7 +80,7 @@ export default function Index() {
     ) {
       navigate(`${getCurrentLocation()}&urlRedirect=${info?.urlRedirect}`);
     }
-    info?.authOutcome && navigate(info?.clientResponseUrl);
+    info?.authOutcome && navigate(info?.clientResponseUrl || "");
   }, [info]);
 
   const handleClick = React.useCallback(() => {

@@ -27,6 +27,7 @@ import {
   getStringFromSessionStorageTask,
   resumePaymentRequestTask
 } from "../utils/transactions/transactionHelpers";
+import { vposPgsClient } from "../utils/api/client";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -129,27 +130,14 @@ export default function Vpos() {
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
 
-  const onError = (_e: string) => {
+  const onError = () => {
     setPolling(false);
     setErrorModalOpen(true);
   };
 
   const onResponse = (resp: PaymentRequestVposResponse) => {
-    // Not a final state -> continue polling
-    if (resp.status === StatusEnum.CREATED && resp.vposUrl === undefined) {
-      setErrorModalOpen(true);
-      setIntervalId(
-        transactionPolling(
-          `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
-          handleResponse,
-          onError
-        )
-      );
-    } else {
-      // Final state - handle response
-      handleResponse(resp);
-      setPolling(true);
-    }
+    handleResponse(resp);
+    setPolling(true);
   };
 
   React.useEffect(() => {
@@ -166,11 +154,21 @@ export default function Vpos() {
   }, [polling, errorModalOpen]);
 
   React.useEffect(() => {
-    transactionFetch(
-      `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
-      onResponse,
-      onError
-    );
+    void pipe(
+      TE.tryCatch(
+        () =>
+          vposPgsClient.GetVposPaymentRequest({
+            requestId: id as string
+          }),
+        () => onError()
+      ),
+      TE.map((errorOrResponse) =>
+        pipe(
+          errorOrResponse,
+          E.map((response) => onResponse(response.value as PaymentRequestVposResponse))
+        )
+      )
+    )();
   }, []);
 
   return (

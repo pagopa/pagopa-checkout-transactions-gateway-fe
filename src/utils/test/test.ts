@@ -4,7 +4,7 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 
 const test = {
-  status: 200,
+  status: 302,
   body: {
     status: "AUTHORIZED"
   }
@@ -15,17 +15,35 @@ const expected = (resp: any) =>
 const result = pipe(
   E.fromPredicate(
     (resp: any) => resp.status === 200,
-    () => false
+    () => "error code"
   )(test),
   E.map(async (_resp) => {
     const jsonBody = test.body;
     return pipe(
       E.fromPredicate(
-        () => _resp.status === 200 && jsonBody.status === "CREATED",
-        () => false
-      )
+        () => jsonBody.status === "CREATED",
+        () => "error status"
+      ),
+      () => E.isRight
     );
   }),
-  E.isLeft
+  E.isRight
 );
 console.log(`Result: ${result} - expected ${expected(test)} `);
+
+export const getBody = async (_resp: any) => test.body
+export const evaluateCode = (resp: any) => resp.status === 200
+export const evaluateStatus = (jsonBody: any) => jsonBody.status === "CREATED"
+
+const result2 = pipe(
+  test,
+  E.fromPredicate(
+    evaluateCode,
+    () => null,
+  ),
+  getBody,
+  evaluateStatus
+);
+console.log(`Result2: ${result2} - expected ${expected(test)} `);
+
+

@@ -7,9 +7,6 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
-import { GatewayRoutes } from "../routes/routes";
-import { transactionFetch, transactionPolling } from "../utils/apiService";
-import { getConfigOrThrow } from "../utils/config/config";
 import { navigate } from "../utils/navigation";
 import {
   addIFrameMessageListener,
@@ -27,6 +24,7 @@ import {
   getStringFromSessionStorageTask,
   resumePaymentRequestTask
 } from "../utils/transactions/transactionHelpers";
+import { vposPgsClient } from "../utils/api/client";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -35,8 +33,6 @@ const layoutStyle: SxProps<Theme> = {
   textAlign: "center",
   alignItems: "center"
 };
-
-const config = getConfigOrThrow();
 
 const handleMethod = (vposUrl: string, methodData: any) => {
   addIFrameMessageListener(handleMethodMessage);
@@ -56,14 +52,10 @@ const handleRedirect = (vposUrl: string) => {
 };
 
 const handleResponse = (resp: PaymentRequestVposResponse) => {
-  if (
-    resp.status === StatusEnum.CREATED &&
-    resp.vposUrl !== undefined &&
-    resp.responseType === ResponseTypeEnum.METHOD
-  ) {
+  if (resp.responseType === ResponseTypeEnum.METHOD) {
     sessionStorage.setItem("requestId", resp.requestId);
     handleMethod(
-      resp.vposUrl, // Workaround pending PGS development
+      resp.vposUrl || "", // Workaround pending PGS development
       Buffer.from(
         JSON.stringify({
           threeDSMethodNotificationUrl: `https://api.dev.platform.pagopa.it/payment-transactions-gateway/external/v1/request-payments/vpos/${resp.requestId}/method/notifications`,
@@ -71,12 +63,8 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
         })
       ).toString("base64")
     ); // TODO: recover 3ds2MethodData
-  } else if (
-    resp.status === StatusEnum.CREATED &&
-    resp.vposUrl !== undefined &&
-    resp.responseType === ResponseTypeEnum.CHALLENGE
-  ) {
-    handleChallenge(resp.vposUrl, {}); // TODO: recover challenge data
+  } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
+    handleChallenge(resp.vposUrl || "", {}); // TODO: recover challenge data
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||
       resp.status === StatusEnum.DENIED) &&
@@ -123,54 +111,38 @@ export default function Vpos() {
   const { id } = useParams();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
-  const [timeoutId, setTimeoutId] = React.useState<number>();
-  const [intervalId, setIntervalId] = React.useState<NodeJS.Timer>();
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
 
-  const onError = (_e: string) => {
+  const onError = () => {
     setPolling(false);
     setErrorModalOpen(true);
   };
 
   const onResponse = (resp: PaymentRequestVposResponse) => {
-    // Not a final state -> continue polling
-    if (resp.status === StatusEnum.CREATED && resp.vposUrl === undefined) {
-      setErrorModalOpen(true);
-      setIntervalId(
-        transactionPolling(
-          `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
-          handleResponse,
-          onError
-        )
-      );
-    } else {
-      // Final state - handle response
-      handleResponse(resp);
-      setPolling(true);
-    }
+    setPolling(true);
+    handleResponse(resp);
   };
 
   React.useEffect(() => {
-    if (polling && !errorModalOpen) {
-      setTimeoutId(
-        window.setTimeout(() => {
-          setErrorModalOpen(true);
-        }, config.API_TIMEOUT)
-      );
-    } else {
-      timeoutId && window.clearTimeout(timeoutId);
-      intervalId && clearInterval(intervalId);
-    }
-  }, [polling, errorModalOpen]);
-
-  React.useEffect(() => {
-    transactionFetch(
-      `${config.API_HOST}/${config.API_BASEPATH}/${GatewayRoutes.VPOS}/${id}`,
-      onResponse,
-      onError
-    );
+    void pipe(
+      TE.tryCatch(
+        () =>
+          vposPgsClient.GetVposPaymentRequest({
+            requestId: id as string
+          }),
+        () => onError()
+      ),
+      TE.map((errorOrResponse) =>
+        pipe(
+          errorOrResponse,
+          E.map((response) =>
+            onResponse(response.value as PaymentRequestVposResponse)
+          )
+        )
+      )
+    )();
   }, []);
 
   return (

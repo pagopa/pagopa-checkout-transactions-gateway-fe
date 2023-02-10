@@ -52,9 +52,7 @@ const handleRedirect = (vposUrl: string) => {
 };
 
 const handleResponse = (resp: PaymentRequestVposResponse) => {
-  if (
-    resp.responseType === ResponseTypeEnum.METHOD
-  ) {
+  if (resp.responseType === ResponseTypeEnum.METHOD) {
     sessionStorage.setItem("requestId", resp.requestId);
     handleMethod(
       resp.vposUrl || "", // Workaround pending PGS development
@@ -65,9 +63,7 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
         })
       ).toString("base64")
     ); // TODO: recover 3ds2MethodData
-  } else if (
-    resp.responseType === ResponseTypeEnum.CHALLENGE
-  ) {
+  } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
     handleChallenge(resp.vposUrl || "", {}); // TODO: recover challenge data
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||

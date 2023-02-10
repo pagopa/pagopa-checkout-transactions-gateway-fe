@@ -3,6 +3,7 @@ import { Millisecond } from "@pagopa/ts-commons//lib/units";
 import { pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
 import { createClient } from "../../generated/pgs/client";
+import { XPayPollingResponseEntity } from "../../generated/pgs/XPayPollingResponseEntity";
 import { getConfigOrThrow } from "../config/config";
 import { constantPollingWithPromisePredicateFetch } from "../api/fetch";
 import {
@@ -27,6 +28,30 @@ export const postepayPgsClient = createClient({
   basePath: conf.API_BASEPATH
 });
 
+export const pgsXPAYClient = createClient({
+  baseUrl: conf.API_HOST,
+  fetchApi: constantPollingWithPromisePredicateFetch(
+    DeferredPromise<boolean>().e1,
+    retries,
+    delay,
+    timeout,
+    async (r: Response): Promise<boolean> => {
+      const jsonResponse = await r.clone().json();
+      return (
+        r.status !== 200 ||
+        pipe(
+          XPayPollingResponseEntity.decode(jsonResponse),
+          E.fold(
+            (_) => false,
+            (resp: XPayPollingResponseEntity) => resp.status !== "CREATED"
+          )
+        )
+      );
+    }
+  ),
+  basePath: conf.API_BASEPATH
+});
+
 export const vposPgsClient = createClient({
   baseUrl: conf.API_HOST,
   fetchApi: constantPollingWithPromisePredicateFetch(
@@ -41,8 +66,10 @@ export const vposPgsClient = createClient({
         pipe(
           PaymentRequestVposResponse.decode(jsonResponse),
           E.fold(
-            _ => false,
-            (resp) => (resp.status === StatusEnum.CREATED && resp.vposUrl === undefined)),
+            (_) => false,
+            (resp) =>
+              resp.status === StatusEnum.CREATED && resp.vposUrl === undefined
+          )
         )
       );
     }

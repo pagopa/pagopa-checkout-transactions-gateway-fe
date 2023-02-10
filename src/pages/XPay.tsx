@@ -20,7 +20,6 @@ const layoutStyle: SxProps<Theme> = {
 export default function XPay() {
   const { t } = useTranslation();
   const { id } = useParams();
-  // const config = getConfigOrThrow();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
 

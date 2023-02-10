@@ -62,7 +62,7 @@ export const vposPgsClient = createClient({
     async (r: Response): Promise<boolean> => {
       const jsonResponse = await r.clone().json();
       return (
-        r.status !== 200 ||
+        (r.status !== 200 && r.status !== 404) ||
         pipe(
           PaymentRequestVposResponse.decode(jsonResponse),
           E.fold(

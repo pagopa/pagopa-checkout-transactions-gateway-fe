@@ -132,13 +132,19 @@ export default function Vpos() {
           vposPgsClient.GetVposPaymentRequest({
             requestId: id as string
           }),
-        () => onError()
+        () => onError() // Polling attempt exausted
       ),
-      TE.map((errorOrResponse) =>
+      TE.map((response) =>
         pipe(
-          errorOrResponse,
-          E.map((response) =>
-            onResponse(response.value as PaymentRequestVposResponse)
+          response,
+          E.map((r) =>
+            pipe(
+              PaymentRequestVposResponse.decode(r.value),
+              E.fold(
+                (_err) => onError(),
+                (r) => onResponse(r as PaymentRequestVposResponse)
+              )
+            )
           )
         )
       )

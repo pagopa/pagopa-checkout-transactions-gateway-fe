@@ -25,6 +25,9 @@ import {
   resumePaymentRequestTask
 } from "../utils/transactions/transactionHelpers";
 import { vposPgsClient } from "../utils/api/client";
+import { getConfigOrThrow } from "../utils/config/config";
+
+const conf = getConfigOrThrow();
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -81,8 +84,7 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
   pipe(
     E.fromPredicate(
       (e1: MessageEvent<any>) =>
-        // e1.origin === window.location.origin &&
-        e1.data === "3DS.Notification.Received",
+        e1.origin === conf.API_HOST && e1.data === "3DS.Notification.Received",
       E.toError
     )(e),
     E.fold(
@@ -132,13 +134,19 @@ export default function Vpos() {
           vposPgsClient.GetVposPaymentRequest({
             requestId: id as string
           }),
-        () => onError()
+        () => onError() // Polling attempt exausted
       ),
-      TE.map((errorOrResponse) =>
+      TE.map((response) =>
         pipe(
-          errorOrResponse,
-          E.map((response) =>
-            onResponse(response.value as PaymentRequestVposResponse)
+          response,
+          E.map((r) =>
+            pipe(
+              PaymentRequestVposResponse.decode(r.value),
+              E.fold(
+                (_err) => onError(),
+                (r) => onResponse(r as PaymentRequestVposResponse)
+              )
+            )
           )
         )
       )

@@ -57,10 +57,7 @@ const handleRedirect = (vposUrl: string) => {
 const handleResponse = (resp: PaymentRequestVposResponse) => {
   if (resp.responseType === ResponseTypeEnum.METHOD) {
     sessionStorage.setItem("requestId", resp.requestId);
-    handleMethod(
-      resp.vposUrl || "",
-      resp.threeDsMethodData
-    );
+    handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
   } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
     handleChallenge(resp.vposUrl || "", {}); // TODO: recover challenge data
   } else if (

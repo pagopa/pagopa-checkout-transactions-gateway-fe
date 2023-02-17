@@ -59,7 +59,7 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     sessionStorage.setItem("requestId", resp.requestId);
     handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
   } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
-    handleChallenge(resp.vposUrl || "", {}); // TODO: recover challenge data
+    handleChallenge(resp.vposUrl || "", resp.creq);
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||
       resp.status === StatusEnum.DENIED) &&

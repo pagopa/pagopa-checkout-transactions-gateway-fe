@@ -58,14 +58,9 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
   if (resp.responseType === ResponseTypeEnum.METHOD) {
     sessionStorage.setItem("requestId", resp.requestId);
     handleMethod(
-      resp.vposUrl || "", // Workaround pending PGS development
-      Buffer.from(
-        JSON.stringify({
-          threeDSMethodNotificationUrl: `https://api.dev.platform.pagopa.it/payment-transactions-gateway/external/v1/request-payments/vpos/${resp.requestId}/method/notifications`,
-          threeDSServerTransID: resp.requestId
-        })
-      ).toString("base64")
-    ); // TODO: recover 3ds2MethodData
+      resp.vposUrl || "",
+      resp.threeDsMethodData
+    );
   } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
     handleChallenge(resp.vposUrl || "", {}); // TODO: recover challenge data
   } else if (

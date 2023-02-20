@@ -9,6 +9,7 @@ import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
 import { XPayResponse } from "../models/transactions";
 import { pgsXPAYClient } from "../utils/api/client";
+import { getToken } from "../utils/navigation";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -20,6 +21,7 @@ const layoutStyle: SxProps<Theme> = {
 export default function XPay() {
   const { t } = useTranslation();
   const { id } = useParams();
+  const token = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
 
@@ -44,9 +46,10 @@ export default function XPay() {
       TE.tryCatch(
         () =>
           pgsXPAYClient.GetXpayPaymentRequest({
-            requestId: id as string
+            requestId: id as string,
+            token
           }),
-        () => onError()
+        onError
       ),
       TE.map((errorOrResp) => {
         pipe(

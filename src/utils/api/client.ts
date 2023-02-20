@@ -43,7 +43,10 @@ export const pgsXPAYClient = createClient({
           XPayPollingResponseEntity.decode(jsonResponse),
           E.fold(
             (_) => false,
-            (resp: XPayPollingResponseEntity) => resp.status !== "CREATED"
+            (resp: XPayPollingResponseEntity) =>
+              resp.status !== StatusEnum.CREATED &&
+              resp.status !== StatusEnum.AUTHORIZED &&
+              resp.status !== StatusEnum.DENIED
           )
         )
       );

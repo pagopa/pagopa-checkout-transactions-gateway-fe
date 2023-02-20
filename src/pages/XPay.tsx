@@ -38,7 +38,7 @@ export default function XPay() {
   const overwriteDom = (resp: XPayPollingResponseEntity) => {
     if (resp.html) {
       document.open("text/html");
-      document.write("<!DOCTYPE HTML>" + resp.html);
+      document.write(`<!DOCTYPE HTML> ${resp.html}`);
       document.close();
     }
   };

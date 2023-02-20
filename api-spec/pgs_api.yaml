@@ -260,6 +260,12 @@ components:
           type: string
         clientReturnUrl:
           type: string
+        threeDsMethodData:
+          type: string
+          format: base64
+        creq:
+          type: string
+          format: base64    
       required:
         - status
         - requestId

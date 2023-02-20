@@ -206,10 +206,10 @@ components:
             </html>
         status:
           type: string
-          description: status
-          example: CREATED
-        authOutcome:
-          type: string
+          enum:
+            - CREATED
+            - AUTHORIZED
+            - DENIED
           description: authorization outcome received from XPay
           example: OK
         authCode:

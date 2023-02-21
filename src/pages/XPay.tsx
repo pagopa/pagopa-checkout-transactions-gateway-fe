@@ -21,7 +21,7 @@ const layoutStyle: SxProps<Theme> = {
 export default function XPay() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const token = getToken(window.location.href);
+  const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
 
@@ -42,12 +42,13 @@ export default function XPay() {
   };
 
   React.useEffect(() => {
+    sessionStorage.setItem("bearerAuth", bearerAuth);
     void pipe(
       TE.tryCatch(
         () =>
           pgsXPAYClient.GetXpayPaymentRequest({
-            requestId: id as string,
-            token
+            bearerAuth,
+            requestId: id as string
           }),
         onError
       ),

@@ -14,7 +14,7 @@
     "start": "parcel src/index.html",
     "dev": "parcel --log-level verbose src/index.html",
     "generate": "npm-run-all -s generate:*",
-     "generate:pgs-local-def": "shx rm -rf src/generated/pgs && shx mkdir -p src/generated/pgs && gen-api-models --api-spec ./api-spec/pgs_api.yaml --no-strict --request-types --response-decoders --client --out-dir src/generated/pgs"
+    "generate:pgs-local-def": "shx rm -rf src/generated/pgs && shx mkdir -p src/generated/pgs && gen-api-models --api-spec ./api-spec/pgs_api.yaml --no-strict --request-types --response-decoders --client --out-dir src/generated/pgs"
   },
   "devDependencies": {
     "@parcel/transformer-pug": "^2.6.0",

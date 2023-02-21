@@ -15,12 +15,12 @@ export function navigate(url: string) {
   window.location.assign(url);
 }
 
-function getUrlHash(url: string) {
+function getHash(url: string) {
   const { hash } = new URL(url);
   return hash;
 }
 
-function removeChars(url: string) {
-  return url.replace("#token=", "");
+function removeChars(subStr: string) {
+  return (str: string) => str.replace(subStr, "");
 }
-export const getToken = flow(getUrlHash, removeChars);
+export const getToken = flow(getHash, removeChars("#token="));

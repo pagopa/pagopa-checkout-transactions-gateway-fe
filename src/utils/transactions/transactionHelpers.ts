@@ -30,12 +30,14 @@ export const getStringFromSessionStorageTask = (
 
 export const resumePaymentRequestTask = (
   methodCompleted: "Y" | "N" | undefined,
-  requestId: string
+  requestId: string,
+  bearerAuth: string
 ): TE.TaskEither<UNKNOWN, string> =>
   pipe(
     TE.tryCatch(
       () =>
         pgsClient.ResumeVposPaymentRequest({
+          bearerAuth,
           requestId,
           body: {
             methodCompleted
@@ -57,12 +59,14 @@ export const resumePaymentRequestTask = (
   );
 
 export const getPaymentRequestTask = (
-  requestId: string
+  requestId: string,
+  bearerAuth: string
 ): TE.TaskEither<UNKNOWN, PaymentRequestVposResponse> =>
   pipe(
     TE.tryCatch(
       () =>
         pgsClient.GetVposPaymentRequest({
+          bearerAuth,
           requestId
         }),
       () => E.toError

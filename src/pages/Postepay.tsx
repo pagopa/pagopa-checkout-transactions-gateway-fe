@@ -22,8 +22,8 @@ import {
   navigate
 } from "../utils/navigation";
 import { postepayPgsClient } from "../utils/api/client";
-import { PollingResponseEntity } from "../generated/pgs/PollingResponseEntity";
 import { getToken } from "../utils/navigation";
+import { PostePayPollingResponseEntity } from "../generated/pgs/PostePayPollingResponseEntity";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -34,7 +34,7 @@ const layoutStyle: SxProps<Theme> = {
 };
 export default function Index() {
   const { t } = useTranslation();
-  const [info, setInfo] = React.useState<PollingResponseEntity>();
+  const [info, setInfo] = React.useState<PostePayPollingResponseEntity>();
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [loading] = React.useState<boolean>(!!getQueryParam("urlRedirect"));
   const bearerAuth = getToken(window.location.href);

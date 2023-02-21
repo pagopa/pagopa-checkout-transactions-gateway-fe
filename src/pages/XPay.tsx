@@ -7,9 +7,13 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
-import { XPayResponse } from "../models/transactions";
 import { pgsXPAYClient } from "../utils/api/client";
 import { getToken } from "../utils/navigation";
+import {
+  StatusEnum,
+  XPayPollingResponseEntity
+} from "../generated/pgs/XPayPollingResponseEntity";
+import { navigate } from "../utils/navigation";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -33,11 +37,24 @@ export default function XPay() {
     setErrorModalOpen(true);
   };
 
-  const overwriteDom = (resp: XPayResponse) => {
+  const overwriteDom = (resp: XPayPollingResponseEntity) => {
     if (resp.html) {
       document.open("text/html");
-      document.write("<!DOCTYPE HTML>" + resp.html);
+      document.write(`<!DOCTYPE HTML> ${resp.html}`);
       document.close();
+    }
+  };
+
+  const isFinalStatus = (status: StatusEnum) =>
+    status === StatusEnum.AUTHORIZED || status === StatusEnum.DENIED;
+
+  const handleRedirect = (redirectUrl: string) => navigate(redirectUrl);
+
+  const handleXPayResponse = (resp: XPayPollingResponseEntity) => {
+    if (resp.status === StatusEnum.CREATED) {
+      overwriteDom(resp);
+    } else if (isFinalStatus(resp.status) && resp.redirectUrl !== undefined) {
+      handleRedirect(resp.redirectUrl);
     }
   };
 
@@ -55,10 +72,18 @@ export default function XPay() {
       TE.map((errorOrResp) => {
         pipe(
           errorOrResp,
-          E.map((r) => {
-            setPolling(false);
-            overwriteDom(r.value as XPayResponse);
-          })
+          E.map((r) =>
+            pipe(
+              XPayPollingResponseEntity.decode(r.value),
+              E.fold(
+                (_err) => onError(),
+                (r) => {
+                  setPolling(false);
+                  handleXPayResponse(r);
+                }
+              )
+            )
+          )
         );
       })
     )();

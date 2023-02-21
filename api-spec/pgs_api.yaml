@@ -219,10 +219,10 @@ components:
             </html>
         status:
           type: string
-          description: status
-          example: CREATED
-        authOutcome:
-          type: string
+          enum:
+            - CREATED
+            - AUTHORIZED
+            - DENIED
           description: authorization outcome received from XPay
           example: OK
         authCode:
@@ -273,6 +273,12 @@ components:
           type: string
         clientReturnUrl:
           type: string
+        threeDsMethodData:
+          type: string
+          format: base64
+        creq:
+          type: string
+          format: base64    
       required:
         - status
         - requestId

@@ -2,20 +2,10 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
-import { getConfigOrThrow } from "../config/config";
-import {
-  Client,
-  createClient as createPgsClient
-} from "../../generated/pgs/client";
 import { VposResumeRequest } from "../../generated/pgs/VposResumeRequest";
 import { PaymentRequestVposResponse } from "../../generated/pgs/PaymentRequestVposResponse";
+import { vposPgsClient } from "../api/client";
 import { UNKNOWN } from "./transactionStatus";
-
-const config = getConfigOrThrow();
-const pgsClient: Client = createPgsClient({
-  baseUrl: config.API_HOST,
-  fetchApi: fetch
-});
 
 export const getStringFromSessionStorageTask = (
   key: string
@@ -36,7 +26,7 @@ export const resumePaymentRequestTask = (
   pipe(
     TE.tryCatch(
       () =>
-        pgsClient.ResumeVposPaymentRequest({
+        vposPgsClient.ResumeVposPaymentRequest({
           bearerAuth,
           requestId,
           body: {

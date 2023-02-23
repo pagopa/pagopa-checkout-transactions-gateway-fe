@@ -55,7 +55,7 @@ export const getPaymentRequestTask = (
   pipe(
     TE.tryCatch(
       () =>
-        pgsClient.GetVposPaymentRequest({
+        vposPgsClient.GetVposPaymentRequest({
           bearerAuth,
           requestId
         }),

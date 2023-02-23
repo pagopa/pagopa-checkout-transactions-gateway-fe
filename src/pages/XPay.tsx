@@ -8,6 +8,7 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
 import { pgsXPAYClient } from "../utils/api/client";
+import { getToken } from "../utils/navigation";
 import {
   StatusEnum,
   XPayPollingResponseEntity
@@ -24,6 +25,7 @@ const layoutStyle: SxProps<Theme> = {
 export default function XPay() {
   const { t } = useTranslation();
   const { id } = useParams();
+  const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
 
@@ -57,13 +59,15 @@ export default function XPay() {
   };
 
   React.useEffect(() => {
+    sessionStorage.setItem("bearerAuth", bearerAuth);
     void pipe(
       TE.tryCatch(
         () =>
           pgsXPAYClient.GetXpayPaymentRequest({
+            bearerAuth,
             requestId: id as string
           }),
-        () => onError()
+        onError
       ),
       TE.map((errorOrResp) => {
         pipe(

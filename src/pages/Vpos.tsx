@@ -26,6 +26,7 @@ import {
 } from "../utils/transactions/transactionHelpers";
 import { vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
+import { getToken } from "../utils/navigation";
 
 const conf = getConfigOrThrow();
 
@@ -86,9 +87,22 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
           getStringFromSessionStorageTask("requestId"),
           TE.chain((requestId: string) =>
             pipe(
-              resumePaymentRequestTask("Y", requestId),
-              TE.chain((_) => getPaymentRequestTask(requestId))
+              getStringFromSessionStorageTask("bearerAuth"),
+              TE.chain((bearerAuth: string) => TE.of({ requestId, bearerAuth }))
             )
+          ),
+          TE.chain(
+            ({
+              requestId,
+              bearerAuth
+            }: {
+              requestId: string;
+              bearerAuth: string;
+            }) =>
+              pipe(
+                resumePaymentRequestTask("Y", requestId, bearerAuth),
+                TE.chain((_) => getPaymentRequestTask(requestId, bearerAuth))
+              )
           ),
           TE.fold(
             (e) => TE.left(e),
@@ -103,6 +117,7 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
 export default function Vpos() {
   const { t } = useTranslation();
   const { id } = useParams();
+  const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
 
@@ -120,13 +135,15 @@ export default function Vpos() {
   };
 
   React.useEffect(() => {
+    sessionStorage.setItem("bearerAuth", bearerAuth);
     void pipe(
       TE.tryCatch(
         () =>
           vposPgsClient.GetVposPaymentRequest({
+            bearerAuth,
             requestId: id as string
           }),
-        () => onError() // Polling attempt exausted
+        onError // Polling attempt exausted
       ),
       TE.map((response) =>
         pipe(

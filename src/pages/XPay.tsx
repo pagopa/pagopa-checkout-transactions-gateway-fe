@@ -29,7 +29,7 @@ export default function XPay() {
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
-  const [timeout, setTimeout] = React.useState(true);
+  const [timeoutCount, setTimeoutCount] = React.useState(true);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
@@ -48,8 +48,8 @@ export default function XPay() {
   };
 
   React.useEffect(() => {
-    setTimeout(() => {
-      if (timeout === true) {
+    setTimeoutCount(() => {
+      if (timeoutCount === true) {
         navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
       }
     }, conf.API_TIMEOUT);
@@ -62,8 +62,10 @@ export default function XPay() {
 
   const handleXPayResponse = (resp: XPayPollingResponseEntity) => {
     if (resp.status === StatusEnum.CREATED) {
+      setTimeoutCount(false);
       overwriteDom(resp);
     } else if (isFinalStatus(resp.status) && resp.redirectUrl !== undefined) {
+      setTimeoutCount(false);
       handleRedirect(resp.redirectUrl);
     }
   };

@@ -9,6 +9,7 @@ import XPay from "./pages/XPay";
 import { GatewayRoutes, GatewayRoutesBasePath } from "./routes/routes";
 import "./translations/i18n";
 import Vpos from "./pages/Vpos";
+import KOPage from "./pages/KOPage";
 
 export function App() {
   const transactionsTheme = createTheme({ ...theme });
@@ -29,6 +30,10 @@ export function App() {
             <Route
               path={`/${GatewayRoutesBasePath}/${GatewayRoutes.VPOS}/:id`}
               element={<Vpos />}
+            />
+            <Route
+              path={`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`}
+              element={<KOPage />}
             />
           </Routes>
         </Layout>

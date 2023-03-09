@@ -27,6 +27,7 @@ import {
 import { vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
 import { getToken } from "../utils/navigation";
+import { GatewayRoutes, GatewayRoutesBasePath } from "../routes/routes";
 
 const conf = getConfigOrThrow();
 
@@ -57,15 +58,18 @@ const handleRedirect = (vposUrl: string) => {
 
 const handleResponse = (resp: PaymentRequestVposResponse) => {
   if (resp.responseType === ResponseTypeEnum.METHOD) {
+    setTimeout(false);
     sessionStorage.setItem("requestId", resp.requestId);
     handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
   } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
+    setTimeout(false);
     handleChallenge(resp.vposUrl || "", { creq: resp.creq });
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||
       resp.status === StatusEnum.DENIED) &&
     resp.clientReturnUrl !== undefined
   ) {
+    setTimeout(false);
     handleRedirect(resp.clientReturnUrl);
   }
 };
@@ -120,11 +124,13 @@ export default function Vpos() {
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
+  const [timeout, setTimeout] = React.useState(true);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
 
   const onError = () => {
+    setTimeout(false);
     setPolling(false);
     setErrorModalOpen(true);
   };
@@ -133,6 +139,14 @@ export default function Vpos() {
     setPolling(true);
     handleResponse(resp);
   };
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      if (timeout === true) {
+        navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
+      }
+    }, conf.API_TIMEOUT);
+  }, []);
 
   React.useEffect(() => {
     sessionStorage.setItem("bearerAuth", bearerAuth);

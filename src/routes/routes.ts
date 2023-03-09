@@ -3,5 +3,6 @@ export const GatewayRoutesBasePath = "payment-transactions-gateway";
 export enum GatewayRoutes {
   POSTEPAY = "postepay",
   XPAY = "xpay",
-  VPOS = "vpos"
+  VPOS = "vpos",
+  KO = "ko"
 }

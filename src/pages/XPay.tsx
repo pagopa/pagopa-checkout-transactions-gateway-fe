@@ -15,6 +15,7 @@ import {
 } from "../generated/pgs/XPayPollingResponseEntity";
 import { navigate } from "../utils/navigation";
 import { GatewayRoutes, GatewayRoutesBasePath } from "../routes/routes";
+import { getConfigOrThrow } from "../utils/config/config";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -23,20 +24,22 @@ const layoutStyle: SxProps<Theme> = {
   textAlign: "center",
   alignItems: "center"
 };
+
+const conf = getConfigOrThrow();
+
 export default function XPay() {
   const { t } = useTranslation();
   const { id } = useParams();
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
-  const [timeoutCount, setTimeoutCount] = React.useState(true);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
 
   const onError = () => {
-    setPolling(false);
     setErrorModalOpen(true);
+    setPolling(false);
   };
 
   const overwriteDom = (resp: XPayPollingResponseEntity) => {
@@ -46,14 +49,6 @@ export default function XPay() {
       document.close();
     }
   };
-
-  React.useEffect(() => {
-    setTimeoutCount(() => {
-      if (timeoutCount === true) {
-        navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
-      }
-    }, conf.API_TIMEOUT);
-  }, []);
 
   const isFinalStatus = (status: StatusEnum) =>
     status === StatusEnum.AUTHORIZED || status === StatusEnum.DENIED;
@@ -72,6 +67,13 @@ export default function XPay() {
 
   React.useEffect(() => {
     sessionStorage.setItem("bearerAuth", bearerAuth);
+
+    setTimeout(() => {
+      if (polling) {
+        navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
+      }
+    }, conf.API_TIMEOUT);
+
     void pipe(
       TE.tryCatch(
         () =>

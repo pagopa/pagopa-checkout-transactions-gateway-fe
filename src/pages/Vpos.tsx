@@ -30,7 +30,6 @@ import { getToken } from "../utils/navigation";
 import { GatewayRoutes, GatewayRoutesBasePath } from "../routes/routes";
 
 const conf = getConfigOrThrow();
-const [timeoutCount, setTimeoutCount] = React.useState(true);
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -40,116 +39,142 @@ const layoutStyle: SxProps<Theme> = {
   alignItems: "center"
 };
 
-const handleMethod = (vposUrl: string, methodData: any) => {
-  addIFrameMessageListener(handleMethodMessage);
-  start3DS2MethodStep(
-    vposUrl,
-    methodData,
-    createIFrame(document.body, "myIdFrame", "myFrameName")
-  );
-};
-
-const handleChallenge = (vposUrl: string, params: any) => {
-  start3DS2AcsChallengeStep(vposUrl, params, document.body);
-};
-
-const handleRedirect = (vposUrl: string) => {
-  navigate(vposUrl);
-};
-
-const handleResponse = (resp: PaymentRequestVposResponse) => {
-  if (resp.responseType === ResponseTypeEnum.METHOD) {
-    setTimeoutCount(false);
-    sessionStorage.setItem("requestId", resp.requestId);
-    handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
-  } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
-    setTimeoutCount(false);
-    handleChallenge(resp.vposUrl || "", { creq: resp.creq });
-  } else if (
-    (resp.status === StatusEnum.AUTHORIZED ||
-      resp.status === StatusEnum.DENIED) &&
-    resp.clientReturnUrl !== undefined
-  ) {
-    setTimeoutCount(false);
-    handleRedirect(resp.clientReturnUrl);
-  }
-};
-
-const handleMethodMessage = async (e: MessageEvent<any>) => {
-  if (/^react-devtools/gi.test(e.data.source)) {
-    return;
-  }
+const getSessionData = () =>
   pipe(
-    E.fromPredicate(
-      (e1: MessageEvent<any>) =>
-        e1.origin === conf.API_HOST && e1.data === "3DS.Notification.Received",
-      E.toError
-    )(e),
-    E.fold(
-      (e) => TE.left(e),
-      (_) =>
-        void pipe(
-          getStringFromSessionStorageTask("requestId"),
-          TE.chain((requestId: string) =>
-            pipe(
-              getStringFromSessionStorageTask("bearerAuth"),
-              TE.chain((bearerAuth: string) => TE.of({ requestId, bearerAuth }))
-            )
-          ),
-          TE.chain(
-            ({
-              requestId,
-              bearerAuth
-            }: {
-              requestId: string;
-              bearerAuth: string;
-            }) =>
-              pipe(
-                resumePaymentRequestTask("Y", requestId, bearerAuth),
-                TE.chain((_) => getPaymentRequestTask(requestId, bearerAuth))
-              )
-          ),
-          TE.fold(
-            (e) => TE.left(e),
-            // eslint-disable-next-line sonarjs/no-use-of-empty-return-value
-            (paymentRequest) => TE.of(handleResponse(paymentRequest))
-          )
-        )()
+    getStringFromSessionStorageTask("requestId"),
+    TE.chain((requestId: string) =>
+      pipe(
+        getStringFromSessionStorageTask("bearerAuth"),
+        TE.chain((bearerAuth: string) => TE.of({ requestId, bearerAuth }))
+      )
     )
   );
-};
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export default function Vpos() {
   const { t } = useTranslation();
   const { id } = useParams();
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
+  const [methodTimeout, setMethodTimeout] = React.useState(true);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
 
+  const handleMethod = (vposUrl: string, methodData: any) => {
+    addIFrameMessageListener(handleMethodMessage);
+    start3DS2MethodStep(
+      vposUrl,
+      methodData,
+      createIFrame(document.body, "myIdFrame", "myFrameName")
+    );
+  };
+  const handleChallenge = (vposUrl: string, params: any) => {
+    start3DS2AcsChallengeStep(vposUrl, params, document.body);
+  };
+
+  const handleRedirect = (vposUrl: string) => {
+    navigate(vposUrl);
+  };
+
+  const handleResponse = (resp: PaymentRequestVposResponse) => {
+    if (resp.responseType === ResponseTypeEnum.METHOD) {
+      React.useEffect(() => {
+        setTimeout(() => {
+          if (methodTimeout) {
+            void pipe(
+              getSessionData(),
+              TE.chain(
+                ({
+                  requestId,
+                  bearerAuth
+                }: {
+                  requestId: string;
+                  bearerAuth: string;
+                }) => resumePaymentRequestTask("N", requestId, bearerAuth)
+              )
+            )();
+          }
+        }, conf.API_TIMEOUT);
+      }, []);
+      sessionStorage.setItem("requestId", resp.requestId);
+      handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
+    } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
+      setMethodTimeout(false);
+      handleChallenge(resp.vposUrl || "", { creq: resp.creq });
+    } else if (
+      (resp.status === StatusEnum.AUTHORIZED ||
+        resp.status === StatusEnum.DENIED) &&
+      resp.clientReturnUrl !== undefined
+    ) {
+      setMethodTimeout(false);
+      handleRedirect(resp.clientReturnUrl);
+    } else {
+      // Not a final state, continue polling
+      setPolling(true);
+    }
+  };
+
+  const handleMethodMessage = async (e: MessageEvent<any>) => {
+    if (/^react-devtools/gi.test(e.data.source)) {
+      return;
+    }
+    pipe(
+      E.fromPredicate(
+        (e1: MessageEvent<any>) =>
+          e1.origin === conf.API_HOST &&
+          e1.data === "3DS.Notification.Received",
+        E.toError
+      )(e),
+      E.fold(
+        (e) => TE.left(e),
+        (_) =>
+          void pipe(
+            getSessionData(),
+            TE.chain(
+              ({
+                requestId,
+                bearerAuth
+              }: {
+                requestId: string;
+                bearerAuth: string;
+              }) =>
+                pipe(
+                  resumePaymentRequestTask("Y", requestId, bearerAuth),
+                  TE.chain((_) => getPaymentRequestTask(requestId, bearerAuth))
+                )
+            ),
+            TE.fold(
+              (e) => TE.left(e),
+              // eslint-disable-next-line sonarjs/no-use-of-empty-return-value
+              (paymentRequest) => TE.of(handleResponse(paymentRequest))
+            )
+          )()
+      )
+    );
+  };
+
   const onError = () => {
-    setTimeoutCount(false);
-    setPolling(false);
+    setMethodTimeout(false);
     setErrorModalOpen(true);
+    setPolling(false);
   };
 
   const onResponse = (resp: PaymentRequestVposResponse) => {
-    setPolling(true);
+    setPolling(false);
     handleResponse(resp);
   };
 
   React.useEffect(() => {
+    sessionStorage.setItem("bearerAuth", bearerAuth);
+
     setTimeout(() => {
-      if (timeoutCount === true) {
+      if (polling) {
         navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
       }
     }, conf.API_TIMEOUT);
-  }, []);
 
-  React.useEffect(() => {
-    sessionStorage.setItem("bearerAuth", bearerAuth);
     void pipe(
       TE.tryCatch(
         () =>

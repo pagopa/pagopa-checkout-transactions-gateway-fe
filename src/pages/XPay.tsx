@@ -33,6 +33,7 @@ export default function XPay() {
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
+  const [timeoutStatus, setTimeoutStatus] = React.useState(false);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
@@ -54,13 +55,12 @@ export default function XPay() {
     status === StatusEnum.AUTHORIZED || status === StatusEnum.DENIED;
 
   const handleRedirect = (redirectUrl: string) => navigate(redirectUrl);
-
   const handleXPayResponse = (resp: XPayPollingResponseEntity) => {
     if (resp.status === StatusEnum.CREATED) {
-      setTimeoutCount(false);
+      setPolling(false);
       overwriteDom(resp);
     } else if (isFinalStatus(resp.status) && resp.redirectUrl !== undefined) {
-      setTimeoutCount(false);
+      setPolling(false);
       handleRedirect(resp.redirectUrl);
     }
   };
@@ -69,9 +69,7 @@ export default function XPay() {
     sessionStorage.setItem("bearerAuth", bearerAuth);
 
     setTimeout(() => {
-      if (polling) {
-        navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
-      }
+      setTimeoutStatus(true);
     }, conf.API_TIMEOUT);
 
     void pipe(
@@ -92,7 +90,6 @@ export default function XPay() {
               E.fold(
                 (_err) => onError(),
                 (r) => {
-                  setPolling(false);
                   handleXPayResponse(r);
                 }
               )
@@ -102,6 +99,13 @@ export default function XPay() {
       })
     )();
   }, []);
+
+  React.useEffect(() => {
+    // Timeout reached and still polling
+    if (timeoutStatus && polling) {
+      navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
+    }
+  }, [timeoutStatus, polling]);
 
   return (
     <Box sx={layoutStyle} aria-live="polite">

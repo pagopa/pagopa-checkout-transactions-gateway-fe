@@ -14,6 +14,7 @@ import {
   XPayPollingResponseEntity
 } from "../generated/pgs/XPayPollingResponseEntity";
 import { navigate } from "../utils/navigation";
+import { GatewayRoutes, GatewayRoutesBasePath } from "../routes/routes";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -28,6 +29,7 @@ export default function XPay() {
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
+  const [timeout, setTimeout] = React.useState(true);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
@@ -44,6 +46,14 @@ export default function XPay() {
       document.close();
     }
   };
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      if (timeout === true) {
+        navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
+      }
+    }, conf.API_TIMEOUT);
+  }, []);
 
   const isFinalStatus = (status: StatusEnum) =>
     status === StatusEnum.AUTHORIZED || status === StatusEnum.DENIED;

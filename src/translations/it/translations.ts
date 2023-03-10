@@ -15,11 +15,6 @@ export const TRANSLATIONS_IT = {
     title: "In attesa di risposta dalla tua banca…",
     body: "Ti stiamo mettendo in contatto con l'emittente della tua carta per autorizzare il pagamento."
   },
-  koPage: {
-    title: "Spiacenti, si è verificato un errore imprevisto",
-    body: "Non è stato addebitato alcun importo.",
-    button: "Chiudi"
-  },
   loading: "caricamento",
   close: "Chiudi"
 };

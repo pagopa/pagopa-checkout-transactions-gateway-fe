@@ -12,6 +12,3 @@ jest.config.js
 jest.integration.config.js
 jest-puppeteer.config.js
 src/__inegration_tests__/*
-
-# We shouldn't lint assets nor generated files
-src/assets

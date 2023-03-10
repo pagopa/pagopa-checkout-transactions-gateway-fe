@@ -66,9 +66,7 @@ const handleResponse = (
     sessionStorage.setItem("requestId", resp.requestId);
 
     if (timeoutDispatcher !== undefined) {
-      React.useEffect(() => {
-        setTimeout(() => timeoutDispatcher(true));
-      }, []);
+      setTimeout(() => timeoutDispatcher(true));
     }
 
     handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
@@ -179,7 +177,7 @@ export default function Vpos() {
 
   React.useEffect(() => {
     if (methodTimeoutElapsed && methodTimeoutEnabled) {
-      void pipe(resumePaymentRequest("N"));
+      void pipe(resumePaymentRequest("N")());
     }
   }, [methodTimeoutElapsed]);
 

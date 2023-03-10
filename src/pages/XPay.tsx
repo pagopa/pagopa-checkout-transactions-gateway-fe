@@ -14,8 +14,6 @@ import {
   XPayPollingResponseEntity
 } from "../generated/pgs/XPayPollingResponseEntity";
 import { navigate } from "../utils/navigation";
-import { GatewayRoutes, GatewayRoutesBasePath } from "../routes/routes";
-import { getConfigOrThrow } from "../utils/config/config";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -25,15 +23,12 @@ const layoutStyle: SxProps<Theme> = {
   alignItems: "center"
 };
 
-const conf = getConfigOrThrow();
-
 export default function XPay() {
   const { t } = useTranslation();
   const { id } = useParams();
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
-  const [timeoutStatus, setTimeoutStatus] = React.useState(false);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
@@ -67,11 +62,6 @@ export default function XPay() {
 
   React.useEffect(() => {
     sessionStorage.setItem("bearerAuth", bearerAuth);
-
-    setTimeout(() => {
-      setTimeoutStatus(true);
-    }, conf.API_TIMEOUT);
-
     void pipe(
       TE.tryCatch(
         () =>
@@ -99,13 +89,6 @@ export default function XPay() {
       })
     )();
   }, []);
-
-  React.useEffect(() => {
-    // Timeout reached and still polling
-    if (timeoutStatus && polling) {
-      navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
-    }
-  }, [timeoutStatus, polling]);
 
   return (
     <Box sx={layoutStyle} aria-live="polite">

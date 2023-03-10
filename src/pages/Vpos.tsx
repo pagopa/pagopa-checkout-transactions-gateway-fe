@@ -38,6 +38,9 @@ const layoutStyle: SxProps<Theme> = {
   alignItems: "center"
 };
 
+// eslint-disable-next-line functional/no-let
+let methodTimeoutEnabled = true;
+
 const handleMethod = (vposUrl: string, methodData: any) => {
   addIFrameMessageListener(handleMethodMessage);
   start3DS2MethodStep(
@@ -55,9 +58,19 @@ const handleRedirect = (vposUrl: string) => {
   navigate(vposUrl);
 };
 
-const handleResponse = (resp: PaymentRequestVposResponse) => {
+const handleResponse = (
+  resp: PaymentRequestVposResponse,
+  timeoutDispatcher: React.Dispatch<React.SetStateAction<boolean>> | undefined
+) => {
   if (resp.responseType === ResponseTypeEnum.METHOD) {
     sessionStorage.setItem("requestId", resp.requestId);
+
+    if (timeoutDispatcher !== undefined) {
+      React.useEffect(() => {
+        setTimeout(() => timeoutDispatcher(true));
+      }, []);
+    }
+
     handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
   } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
     handleChallenge(resp.vposUrl || "", { creq: resp.creq });
@@ -69,6 +82,24 @@ const handleResponse = (resp: PaymentRequestVposResponse) => {
     handleRedirect(resp.clientReturnUrl);
   }
 };
+
+const resumePaymentRequest = (methodCompleted: "Y" | "N") =>
+  pipe(
+    getStringFromSessionStorageTask("requestId"),
+    TE.chain((requestId: string) =>
+      pipe(
+        getStringFromSessionStorageTask("bearerAuth"),
+        TE.chain((bearerAuth: string) => TE.of({ requestId, bearerAuth }))
+      )
+    ),
+    TE.chain(
+      ({ requestId, bearerAuth }: { requestId: string; bearerAuth: string }) =>
+        pipe(
+          resumePaymentRequestTask(methodCompleted, requestId, bearerAuth),
+          TE.chain((_) => getPaymentRequestTask(requestId, bearerAuth))
+        )
+    )
+  );
 
 const handleMethodMessage = async (e: MessageEvent<any>) => {
   if (/^react-devtools/gi.test(e.data.source)) {
@@ -82,34 +113,17 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
     )(e),
     E.fold(
       (e) => TE.left(e),
-      (_) =>
-        void pipe(
-          getStringFromSessionStorageTask("requestId"),
-          TE.chain((requestId: string) =>
-            pipe(
-              getStringFromSessionStorageTask("bearerAuth"),
-              TE.chain((bearerAuth: string) => TE.of({ requestId, bearerAuth }))
-            )
-          ),
-          TE.chain(
-            ({
-              requestId,
-              bearerAuth
-            }: {
-              requestId: string;
-              bearerAuth: string;
-            }) =>
-              pipe(
-                resumePaymentRequestTask("Y", requestId, bearerAuth),
-                TE.chain((_) => getPaymentRequestTask(requestId, bearerAuth))
-              )
-          ),
+      (_) => {
+        methodTimeoutEnabled = false;
+        return void pipe(
+          resumePaymentRequest("Y"),
           TE.fold(
             (e) => TE.left(e),
             // eslint-disable-next-line sonarjs/no-use-of-empty-return-value
-            (paymentRequest) => TE.of(handleResponse(paymentRequest))
+            (paymentRequest) => TE.of(handleResponse(paymentRequest, undefined))
           )
-        )()
+        )();
+      }
     )
   );
 };
@@ -120,6 +134,7 @@ export default function Vpos() {
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
+  const [methodTimeoutElapsed, setMethodTimeoutElapsed] = React.useState(false);
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
@@ -131,7 +146,7 @@ export default function Vpos() {
 
   const onResponse = (resp: PaymentRequestVposResponse) => {
     setPolling(true);
-    handleResponse(resp);
+    handleResponse(resp, setMethodTimeoutElapsed);
   };
 
   React.useEffect(() => {
@@ -161,6 +176,12 @@ export default function Vpos() {
       )
     )();
   }, []);
+
+  React.useEffect(() => {
+    if (methodTimeoutElapsed && methodTimeoutEnabled) {
+      void pipe(resumePaymentRequest("N"));
+    }
+  }, [methodTimeoutElapsed]);
 
   return (
     <Box sx={layoutStyle} aria-live="polite">

@@ -41,6 +41,9 @@ const layoutStyle: SxProps<Theme> = {
 // eslint-disable-next-line functional/no-let
 let methodTimeoutEnabled = true;
 
+// eslint-disable-next-line functional/no-let
+let isMethodTimeoutElapsed = false;
+
 const handleMethod = (vposUrl: string, methodData: any) => {
   addIFrameMessageListener(handleMethodMessage);
   start3DS2MethodStep(
@@ -106,7 +109,9 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
   pipe(
     E.fromPredicate(
       (e1: MessageEvent<any>) =>
-        e1.origin === conf.API_HOST && e1.data === "3DS.Notification.Received",
+        e1.origin === conf.API_HOST &&
+        e1.data === "3DS.Notification.Received" &&
+        !isMethodTimeoutElapsed,
       E.toError
     )(e),
     E.fold(
@@ -177,6 +182,7 @@ export default function Vpos() {
 
   React.useEffect(() => {
     if (methodTimeoutElapsed && methodTimeoutEnabled) {
+      isMethodTimeoutElapsed = true;
       void pipe(resumePaymentRequest("N")());
     }
   }, [methodTimeoutElapsed]);

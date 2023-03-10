@@ -27,7 +27,6 @@ import {
 import { vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
 import { getToken } from "../utils/navigation";
-import { GatewayRoutes, GatewayRoutesBasePath } from "../routes/routes";
 
 const conf = getConfigOrThrow();
 
@@ -57,8 +56,9 @@ export default function Vpos() {
   const bearerAuth = getToken(window.location.href);
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
-  const [methodTimeout, setMethodTimeout] = React.useState(false);
-  const [timeoutStatus, setTimeoutStatus] = React.useState(false);
+  const [methodTimeoutElapsed, setMethodTimeoutElapsed] = React.useState(false);
+  // eslint-disable-next-line functional/no-let
+  let methodTimeoutId: any = null;
 
   const modalTitle = polling ? t("polling.title") : t("errors.title");
   const modalBody = polling ? t("polling.body") : t("errors.body");
@@ -79,19 +79,24 @@ export default function Vpos() {
     navigate(vposUrl);
   };
 
+  const clearMethodTimeout = () => {
+    if (methodTimeoutId !== null) {
+      clearTimeout(methodTimeoutId);
+    }
+  };
+
   const handleResponse = (resp: PaymentRequestVposResponse) => {
     if (resp.responseType === ResponseTypeEnum.METHOD) {
       setPolling(false);
       React.useEffect(() => {
-        setTimeout(() => {
-          setMethodTimeout(true);
+        methodTimeoutId = setTimeout(() => {
+          setMethodTimeoutElapsed(true);
         }, conf.API_TIMEOUT);
       }, []);
       sessionStorage.setItem("requestId", resp.requestId);
       handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
     } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
       setPolling(false);
-      setMethodTimeout(false);
       handleChallenge(resp.vposUrl || "", { creq: resp.creq });
     } else if (
       (resp.status === StatusEnum.AUTHORIZED ||
@@ -99,7 +104,6 @@ export default function Vpos() {
       resp.clientReturnUrl !== undefined
     ) {
       setPolling(false);
-      setMethodTimeout(false);
       handleRedirect(resp.clientReturnUrl);
     }
   };
@@ -111,8 +115,7 @@ export default function Vpos() {
     pipe(
       E.fromPredicate(
         (e1: MessageEvent<any>) =>
-          e1.origin === conf.API_HOST &&
-          e1.data === "3DS.Notification.Received",
+          e1.origin === conf.API_HOST && e1.data === "disabled",
         E.toError
       )(e),
       E.fold(
@@ -127,11 +130,13 @@ export default function Vpos() {
               }: {
                 requestId: string;
                 bearerAuth: string;
-              }) =>
-                pipe(
+              }) => {
+                clearMethodTimeout();
+                return pipe(
                   resumePaymentRequestTask("Y", requestId, bearerAuth),
                   TE.chain((_) => getPaymentRequestTask(requestId, bearerAuth))
-                )
+                );
+              }
             ),
             TE.fold(
               (e) => TE.left(e),
@@ -144,7 +149,7 @@ export default function Vpos() {
   };
 
   const onError = () => {
-    setMethodTimeout(false);
+    setMethodTimeoutElapsed(false);
     setErrorModalOpen(true);
     setPolling(false);
   };
@@ -155,11 +160,6 @@ export default function Vpos() {
 
   React.useEffect(() => {
     sessionStorage.setItem("bearerAuth", bearerAuth);
-
-    setTimeout(() => {
-      setTimeoutStatus(true);
-    }, conf.API_TIMEOUT);
-
     void pipe(
       TE.tryCatch(
         () =>
@@ -187,14 +187,7 @@ export default function Vpos() {
   }, []);
 
   React.useEffect(() => {
-    // Timeout reached and still polling
-    if (timeoutStatus && polling) {
-      navigate(`/${GatewayRoutesBasePath}/${GatewayRoutes.KO}`);
-    }
-  }, [timeoutStatus, polling]);
-
-  React.useEffect(() => {
-    if (methodTimeout) {
+    if (methodTimeoutElapsed) {
       void pipe(
         getSessionData(),
         TE.chain(

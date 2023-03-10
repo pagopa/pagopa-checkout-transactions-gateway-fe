@@ -66,7 +66,7 @@ const handleResponse = (
     sessionStorage.setItem("requestId", resp.requestId);
 
     if (timeoutDispatcher !== undefined) {
-      setTimeout(() => timeoutDispatcher(true));
+      setTimeout(() => timeoutDispatcher(true), conf.METHOD_STEP_TIMEOUT);
     }
 
     handleMethod(resp.vposUrl || "", resp.threeDsMethodData);

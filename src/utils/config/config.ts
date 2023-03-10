@@ -16,12 +16,14 @@ export const IConfig = t.interface({
   API_TIMEOUT: t.number,
   API_HOST: NonEmptyString,
   API_BASEPATH: NonEmptyString,
-  API_GET_INTERVAL: t.number
+  API_GET_INTERVAL: t.number,
+  METHOD_STEP_TIMEOUT: t.number
 });
 
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
   API_TIMEOUT: +(process.env.API_TIMEOUT || 10000),
+  METHOD_STEP_TIMEOUT: +(process.env.API_TIMEOUT || 10000),
   API_HOST: process.env.API_HOST || "",
   API_BASEPATH: process.env.API_BASEPATH || "",
   API_GET_INTERVAL: +(process.env.API_GET_INTERVAL || 5000)

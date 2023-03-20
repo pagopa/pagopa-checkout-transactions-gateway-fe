@@ -77,7 +77,8 @@ const handleResponse = (
     handleChallenge(resp.vposUrl || "", { creq: resp.creq });
   } else if (
     (resp.status === StatusEnum.AUTHORIZED ||
-      resp.status === StatusEnum.DENIED) &&
+      resp.status === StatusEnum.DENIED ||
+      resp.status === StatusEnum.CANCELLED) &&
     resp.clientReturnUrl !== undefined
   ) {
     handleRedirect(resp.clientReturnUrl);

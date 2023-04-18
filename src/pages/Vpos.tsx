@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
+import * as t from "io-ts";
 import ErrorModal from "../components/modals/ErrorModal";
 import { navigate } from "../utils/navigation";
 import {
@@ -15,11 +16,6 @@ import {
   start3DS2MethodStep
 } from "../utils/iframe/iframe";
 import {
-  PaymentRequestVposResponse,
-  ResponseTypeEnum,
-  StatusEnum
-} from "../generated/pgs/PaymentRequestVposResponse";
-import {
   getPaymentRequestTask,
   getStringFromSessionStorageTask,
   resumePaymentRequestTask
@@ -27,6 +23,22 @@ import {
 import { vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
 import { getToken } from "../utils/navigation";
+import {
+  CcPaymentInfoAcceptedResponse,
+  StatusEnum
+} from "../generated/pgs/CcPaymentInfoAcceptedResponse";
+import { CcPaymentInfoAuthorizedResponse } from "../generated/pgs/CcPaymentInfoAuthorizedResponse";
+import {
+  CcPaymentInfoAcsResponse,
+  ResponseTypeEnum
+} from "../generated/pgs/CcPaymentInfoAcsResponse";
+
+const VposPollingResponse =
+  CcPaymentInfoAcceptedResponse ||
+  CcPaymentInfoAuthorizedResponse ||
+  CcPaymentInfoAcsResponse;
+
+type VposPollingResponse = t.TypeOf<typeof VposPollingResponse>;
 
 const conf = getConfigOrThrow();
 
@@ -62,27 +74,37 @@ const handleRedirect = (vposUrl: string) => {
 };
 
 const handleResponse = (
-  resp: PaymentRequestVposResponse,
+  resp: VposPollingResponse,
   timeoutDispatcher: React.Dispatch<React.SetStateAction<boolean>> | undefined
 ) => {
-  if (resp.responseType === ResponseTypeEnum.METHOD) {
-    sessionStorage.setItem("requestId", resp.requestId);
+  pipe(
+    CcPaymentInfoAcsResponse.decode(resp),
+    E.fold(
+      (_) => {
+        if (
+          (resp.status === StatusEnum.AUTHORIZED ||
+            resp.status === StatusEnum.DENIED ||
+            resp.status === StatusEnum.CANCELLED) &&
+          resp.redirectUrl !== undefined
+        ) {
+          handleRedirect(resp.redirectUrl);
+        }
+      },
+      (acs_resp: CcPaymentInfoAcsResponse) => {
+        if (acs_resp.responseType === ResponseTypeEnum.METHOD) {
+          sessionStorage.setItem("requestId", resp.requestId);
 
-    if (timeoutDispatcher !== undefined) {
-      setTimeout(() => timeoutDispatcher(true), conf.METHOD_STEP_TIMEOUT);
-    }
+          if (timeoutDispatcher !== undefined) {
+            setTimeout(() => timeoutDispatcher(true), conf.METHOD_STEP_TIMEOUT);
+          }
 
-    handleMethod(resp.vposUrl || "", resp.threeDsMethodData);
-  } else if (resp.responseType === ResponseTypeEnum.CHALLENGE) {
-    handleChallenge(resp.vposUrl || "", { creq: resp.creq });
-  } else if (
-    (resp.status === StatusEnum.AUTHORIZED ||
-      resp.status === StatusEnum.DENIED ||
-      resp.status === StatusEnum.CANCELLED) &&
-    resp.clientReturnUrl !== undefined
-  ) {
-    handleRedirect(resp.clientReturnUrl);
-  }
+          handleMethod(acs_resp.vposUrl || "", resp.threeDsMethodData);
+        } else if (acs_resp.responseType === ResponseTypeEnum.CHALLENGE) {
+          handleChallenge(resp.vposUrl || "", { creq: resp.creq });
+        }
+      }
+    )
+  );
 };
 
 const resumePaymentRequest = (methodCompleted: "Y" | "N") =>
@@ -148,7 +170,7 @@ export default function Vpos() {
     setErrorModalOpen(true);
   };
 
-  const onResponse = (resp: PaymentRequestVposResponse) => {
+  const onResponse = (resp: VposPollingResponse) => {
     setPolling(true);
     handleResponse(resp, setMethodTimeoutElapsed);
   };
@@ -169,10 +191,10 @@ export default function Vpos() {
           response,
           E.map((r) =>
             pipe(
-              PaymentRequestVposResponse.decode(r.value),
+              VposPollingResponse.decode(r.value),
               E.fold(
                 (_err) => onError(),
-                (r) => onResponse(r as PaymentRequestVposResponse)
+                (r) => onResponse(r)
               )
             )
           )

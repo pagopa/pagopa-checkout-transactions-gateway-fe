@@ -14,7 +14,7 @@
     "start": "parcel src/index.html",
     "dev": "parcel --log-level verbose src/index.html",
     "generate": "npm-run-all -s generate:*",
-    "generate:pgs-be": "shx rm -rf src/generated/pgs && shx mkdir -p src/generated/pgs && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/core/api/payment_transactions_gateway_api/pgs-fe/v1/_openapi.json.tpl --no-strict --out-dir src/generated/pgs --request-types --response-decoders --client"
+    "generate:pgs-be": "shx rm -rf src/generated/pgs && shx mkdir -p src/generated/pgs && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/824c80309f4561b68fe141673c5757cc2b49cdd2/src/core/api/payment_transactions_gateway_api/pgs-fe/v1/_openapi.json.tpl --no-strict --out-dir src/generated/pgs --request-types --response-decoders --client"
   },
   "devDependencies": {
     "@parcel/transformer-pug": "^2.6.0",

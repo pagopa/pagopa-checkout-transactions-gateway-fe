@@ -6,7 +6,6 @@ import { useParams } from "react-router-dom";
 import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
-import * as t from "io-ts";
 import ErrorModal from "../components/modals/ErrorModal";
 import { navigate } from "../utils/navigation";
 import {
@@ -20,25 +19,14 @@ import {
   getStringFromSessionStorageTask,
   resumePaymentRequestTask
 } from "../utils/transactions/transactionHelpers";
-import { vposPgsClient } from "../utils/api/client";
+import { VposPollingResponse, vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
 import { getToken } from "../utils/navigation";
-import {
-  CcPaymentInfoAcceptedResponse,
-  StatusEnum
-} from "../generated/pgs/CcPaymentInfoAcceptedResponse";
-import { CcPaymentInfoAuthorizedResponse } from "../generated/pgs/CcPaymentInfoAuthorizedResponse";
+import { StatusEnum } from "../generated/pgs/CcPaymentInfoAcceptedResponse";
 import {
   CcPaymentInfoAcsResponse,
   ResponseTypeEnum
 } from "../generated/pgs/CcPaymentInfoAcsResponse";
-
-const VposPollingResponse =
-  CcPaymentInfoAcceptedResponse ||
-  CcPaymentInfoAuthorizedResponse ||
-  CcPaymentInfoAcsResponse;
-
-type VposPollingResponse = t.TypeOf<typeof VposPollingResponse>;
 
 const conf = getConfigOrThrow();
 

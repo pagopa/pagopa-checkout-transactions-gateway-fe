@@ -3,13 +3,15 @@ import { Millisecond } from "@pagopa/ts-commons//lib/units";
 import { pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
 import { createClient } from "../../generated/pgs/client";
-import { XPayPollingResponseEntity } from "../../generated/pgs/XPayPollingResponseEntity";
+import {
+  StatusEnum,
+  XPayPollingResponseEntity
+} from "../../generated/pgs/XPayPollingResponseEntity";
 import { getConfigOrThrow } from "../config/config";
 import { constantPollingWithPromisePredicateFetch } from "../api/fetch";
-import {
-  PaymentRequestVposResponse,
-  StatusEnum
-} from "../../generated/pgs/PaymentRequestVposResponse";
+import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
+import { CcPaymentInfoAcceptedResponse } from "../../generated/pgs/CcPaymentInfoAcceptedResponse";
+import { CcPaymentInfoAcsResponse } from "../../generated/pgs/CcPaymentInfoAcsResponse";
 
 const conf = getConfigOrThrow();
 const retries: number = 10;
@@ -67,11 +69,28 @@ export const vposPgsClient = createClient({
       return (
         (r.status !== 200 && r.status !== 404) ||
         pipe(
-          PaymentRequestVposResponse.decode(jsonResponse),
+          VPosPollingResponse.decode(jsonResponse),
           E.fold(
             (_) => false,
             (resp) =>
-              resp.status === StatusEnum.CREATED && resp.vposUrl === undefined
+              pipe(
+                CcPaymentInfoAcceptedResponse.decode(resp),
+                E.fold(
+                  (_err) =>
+                    pipe(
+                      CcPaymentInfoAcsResponse.decode(resp),
+                      E.fold(
+                        (_err) => false,
+                        (acsResp) =>
+                          acsResp.status === StatusEnum.CREATED &&
+                          acsResp.vposUrl === undefined
+                      )
+                    ),
+                  (accResp) =>
+                    accResp.status === StatusEnum.CREATED &&
+                    accResp.vposUrl === undefined
+                )
+              )
           )
         )
       );

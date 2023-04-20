@@ -10,6 +10,8 @@ import {
 import { getConfigOrThrow } from "../config/config";
 import { constantPollingWithPromisePredicateFetch } from "../api/fetch";
 import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
+import { CcPaymentInfoAcceptedResponse } from "../../generated/pgs/CcPaymentInfoAcceptedResponse";
+import { CcPaymentInfoAcsResponse } from "../../generated/pgs/CcPaymentInfoAcsResponse";
 
 const conf = getConfigOrThrow();
 const retries: number = 10;
@@ -70,7 +72,25 @@ export const vposPgsClient = createClient({
           VPosPollingResponse.decode(jsonResponse),
           E.fold(
             (_) => false,
-            (resp) => resp.status === StatusEnum.CREATED
+            (resp) =>
+              pipe(
+                CcPaymentInfoAcceptedResponse.decode(resp),
+                E.fold(
+                  (_err) =>
+                    pipe(
+                      CcPaymentInfoAcsResponse.decode(resp),
+                      E.fold(
+                        (_err) => false,
+                        (acsResp) =>
+                          acsResp.status === StatusEnum.CREATED &&
+                          acsResp.vposUrl === undefined
+                      )
+                    ),
+                  (accResp) =>
+                    accResp.status === StatusEnum.CREATED &&
+                    accResp.vposUrl === undefined
+                )
+              )
           )
         )
       );

@@ -10,7 +10,6 @@ import {
 import { getConfigOrThrow } from "../config/config";
 import { constantPollingWithPromisePredicateFetch } from "../api/fetch";
 import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
-import { CcPaymentInfoAcceptedResponse } from "../../generated/pgs/CcPaymentInfoAcceptedResponse";
 
 const conf = getConfigOrThrow();
 const retries: number = 10;

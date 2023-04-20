@@ -3,7 +3,8 @@ import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
 import { VposResumeRequest } from "../../generated/pgs/VposResumeRequest";
-import { VposPollingResponse, vposPgsClient } from "../api/client";
+import { vposPgsClient } from "../api/client";
+import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
 import { UNKNOWN } from "./transactionStatus";
 
 export const getStringFromSessionStorageTask = (
@@ -50,7 +51,7 @@ export const resumePaymentRequestTask = (
 export const getPaymentRequestTask = (
   requestId: string,
   bearerAuth: string
-): TE.TaskEither<UNKNOWN, VposPollingResponse> =>
+): TE.TaskEither<UNKNOWN, VPosPollingResponse> =>
   pipe(
     TE.tryCatch(
       () =>
@@ -69,7 +70,7 @@ export const getPaymentRequestTask = (
             () => TE.left(UNKNOWN.value),
             (responseType) =>
               responseType.status === 200
-                ? TE.of(responseType.value as unknown as VposPollingResponse)
+                ? TE.of(responseType.value as unknown as VPosPollingResponse)
                 : TE.left(UNKNOWN.value)
           )
         )

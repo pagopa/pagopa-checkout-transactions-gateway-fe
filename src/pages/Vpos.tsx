@@ -19,14 +19,19 @@ import {
   getStringFromSessionStorageTask,
   resumePaymentRequestTask
 } from "../utils/transactions/transactionHelpers";
-import { VposPollingResponse, vposPgsClient } from "../utils/api/client";
+import { vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
 import { getToken } from "../utils/navigation";
-import { StatusEnum } from "../generated/pgs/CcPaymentInfoAcceptedResponse";
+import { VPosPollingResponse } from "../generated/pgs/VPosPollingResponse";
+import {
+  CcPaymentInfoAcceptedResponse,
+  StatusEnum
+} from "../generated/pgs/CcPaymentInfoAcceptedResponse";
 import {
   CcPaymentInfoAcsResponse,
   ResponseTypeEnum
 } from "../generated/pgs/CcPaymentInfoAcsResponse";
+import { CcPaymentInfoAuthorizedResponse } from "../generated/pgs/CcPaymentInfoAuthorizedResponse";
 
 const conf = getConfigOrThrow();
 
@@ -62,37 +67,51 @@ const handleRedirect = (vposUrl: string) => {
 };
 
 const handleResponse = (
-  resp: VposPollingResponse,
+  resp: VPosPollingResponse,
   timeoutDispatcher: React.Dispatch<React.SetStateAction<boolean>> | undefined
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ) => {
-  pipe(
-    CcPaymentInfoAcsResponse.decode(resp),
-    E.fold(
-      (_) => {
-        if (
-          (resp.status === StatusEnum.AUTHORIZED ||
-            resp.status === StatusEnum.DENIED ||
-            resp.status === StatusEnum.CANCELLED) &&
-          resp.redirectUrl !== undefined
-        ) {
-          handleRedirect(resp.redirectUrl);
+  if (
+    resp.status === StatusEnum.AUTHORIZED ||
+    resp.status === StatusEnum.DENIED ||
+    resp.status === StatusEnum.CANCELLED
+  ) {
+    pipe(
+      CcPaymentInfoAcceptedResponse.decode(resp),
+      E.mapLeft((_err) =>
+        pipe(
+          CcPaymentInfoAuthorizedResponse.decode(resp),
+          E.map((authRes) => {
+            if (authRes.redirectUrl !== undefined) {
+              handleRedirect(authRes.redirectUrl);
+            }
+          })
+        )
+      ),
+      E.map((accRes) => {
+        if (accRes.redirectUrl !== undefined) {
+          handleRedirect(accRes.redirectUrl);
         }
-      },
-      (acs_resp: CcPaymentInfoAcsResponse) => {
-        if (acs_resp.responseType === ResponseTypeEnum.METHOD) {
+      })
+    );
+  } else {
+    pipe(
+      CcPaymentInfoAcsResponse.decode(resp),
+      E.map((acsRes) => {
+        if (acsRes.responseType === ResponseTypeEnum.METHOD) {
           sessionStorage.setItem("requestId", resp.requestId);
 
           if (timeoutDispatcher !== undefined) {
             setTimeout(() => timeoutDispatcher(true), conf.METHOD_STEP_TIMEOUT);
           }
 
-          handleMethod(acs_resp.vposUrl || "", resp.threeDsMethodData);
-        } else if (acs_resp.responseType === ResponseTypeEnum.CHALLENGE) {
-          handleChallenge(resp.vposUrl || "", { creq: resp.creq });
+          handleMethod(acsRes.vposUrl || "", acsRes.threeDsMethodData);
+        } else if (acsRes.responseType === ResponseTypeEnum.CHALLENGE) {
+          handleChallenge(acsRes.vposUrl || "", { creq: acsRes.creq });
         }
-      }
-    )
-  );
+      })
+    );
+  }
 };
 
 const resumePaymentRequest = (methodCompleted: "Y" | "N") =>
@@ -158,7 +177,7 @@ export default function Vpos() {
     setErrorModalOpen(true);
   };
 
-  const onResponse = (resp: VposPollingResponse) => {
+  const onResponse = (resp: VPosPollingResponse) => {
     setPolling(true);
     handleResponse(resp, setMethodTimeoutElapsed);
   };
@@ -179,7 +198,7 @@ export default function Vpos() {
           response,
           E.map((r) =>
             pipe(
-              VposPollingResponse.decode(r.value),
+              VPosPollingResponse.decode(r.value),
               E.fold(
                 (_err) => onError(),
                 (r) => onResponse(r)

@@ -66,8 +66,10 @@ export const vposPgsClient = createClient({
     timeout,
     async (r: Response): Promise<boolean> => {
       const jsonResponse = await r.clone().json();
+      // If the following conditions is verified
+      // it keeps trying <retries> times
       return (
-        (r.status !== 200 && r.status !== 404) ||
+        r.status !== 200 ||
         pipe(
           VPosPollingResponse.decode(jsonResponse),
           E.fold(

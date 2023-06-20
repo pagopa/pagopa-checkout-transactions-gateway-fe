@@ -66,7 +66,7 @@ export const vposPgsClient = createClient({
     timeout,
     async (r: Response): Promise<boolean> => {
       const jsonResponse = await r.clone().json();
-      // If the following conditions is verified
+      // If the following conditions are verified
       // it keeps trying <retries> times
       return (
         r.status !== 200 ||

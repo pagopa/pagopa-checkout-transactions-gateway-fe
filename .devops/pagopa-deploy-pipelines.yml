@@ -189,6 +189,7 @@ stages:
           - script: |
               echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
             displayName: 'Skip release bundle'
+        - template: templates/node-github-current-version/template.yaml@templates
   
   # Prepare Artifact
   - stage: Prepare_artifact_uat
@@ -279,3 +280,60 @@ stages:
               testResultsFormat: 'JUnit'
               testResultsFiles: '**/*-TEST.xml' 
               searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  # --- START Deploy PROD --- #
+  - stage: "Prod_WaitForApproval"
+    displayName: 'PROD approval deployment'
+    dependsOn: [ Deploy_UAT_pagoPA,Release ]
+    condition: |
+      and(
+        eq(${{parameters.UAT_PROD_DEPLOY}}, true),
+        eq(dependencies.Deploy_UAT_pagoPA.result, 'Succeeded'),
+        in(dependencies.Release.result, 'Succeeded', 'Skipped')
+      )
+    variables:
+      version: $[ stageDependencies.Release.make_release.outputs['current_version.version'] ]
+    jobs:
+      - job: Prod_Approval
+        displayName: Manual prod deploy approval
+        pool: server
+        timeoutInMinutes: 4320 # 3 days
+        steps:
+          - task: ManualValidation@0
+            timeoutInMinutes: 4320 # 3 days
+            inputs:
+              notifyUsers: $(APPROVE_TOUCHPOINT_MAIL)
+              instructions: "Please approve or reject PROD promotions for version $(version)"
+              onTimeout: 'reject'    
+
+  - stage: Prepare_artifact_prod
+    dependsOn: [Release,Prod_WaitForApproval]
+    condition: |
+      and(
+        eq(${{parameters.UAT_PROD_DEPLOY}}, true),
+        eq(dependencies.Prod_WaitForApproval.result, 'Succeeded'),
+    jobs:
+      - job: make_build
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - template: templates/node-job-setup/template.yaml@pagopaCommons
+            parameters:
+              # On the assumption that this stage is executed only when Relase stage is,
+              #  with this parameter we set the reference the deploy script must pull changes from.
+              # The branch/tag name is calculated from the source branch
+              #  ex: Build.SourceBranch=refs/heads/main --> main
+              #  ex: Build.SourceBranch=refs/tags/v1.2.3-RELEASE --> v1.2.3-RELEASE
+              gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
+
+          - script: |
+             yarn generate
+            displayName: 'Generate'
+
+          - script: |
+              API_HOST=https://api.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+
+            displayName: 'Build'
+
+          - publish: $(System.DefaultWorkingDirectory)/dist
+            artifact: Bundle_PROD        

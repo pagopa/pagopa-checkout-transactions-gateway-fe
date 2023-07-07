@@ -310,7 +310,7 @@ stages:
     dependsOn: [Release,Prod_WaitForApproval]
     condition: |
       and(
-        eq(${{parameters.UAT_PROD_DEPLOY}}, true),
+        eq(${{parameters.UAT_PROD_DEPLOY}}, True),
         eq(dependencies.Prod_WaitForApproval.result, 'Succeeded'),
     jobs:
       - job: make_build

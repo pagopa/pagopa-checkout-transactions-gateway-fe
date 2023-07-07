@@ -78,7 +78,7 @@ export const vposPgsClient = createClient({
       return (
         r.status !== 200 ||
         pipe(
-          CcPaymentInfoAuthorizedResponse.decode(jsonResponse),
+          VPosPollingResponse.decode(jsonResponse),
           E.fold(
             (_) => false,
             (resp) =>

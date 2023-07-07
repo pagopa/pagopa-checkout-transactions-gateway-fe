@@ -287,7 +287,7 @@ stages:
     dependsOn: [ Deploy_UAT_pagoPA,Release ]
     condition: |
       and(
-        eq(${{parameters.UAT_PROD_DEPLOY}}, true),
+        eq(${{parameters.UAT_PROD_DEPLOY}}, True),
         eq(dependencies.Deploy_UAT_pagoPA.result, 'Succeeded'),
         in(dependencies.Release.result, 'Succeeded', 'Skipped')
       )

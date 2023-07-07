@@ -2,9 +2,8 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
-import { VposResumeRequest } from "../../generated/pgs/VposResumeRequest";
-import { vposPgsClient } from "../api/client";
-import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
+import { VPosPollingResponse, vposPgsClient } from "../api/client";
+import { CreditCardResumeRequest } from "../../generated/pgs/CreditCardResumeRequest";
 import { UNKNOWN } from "./transactionStatus";
 
 export const getStringFromSessionStorageTask = (
@@ -20,18 +19,18 @@ export const getStringFromSessionStorageTask = (
 
 export const resumePaymentRequestTask = (
   methodCompleted: "Y" | "N" | undefined,
-  requestId: string,
+  paymentAuthorizationId: string,
   bearerAuth: string
 ): TE.TaskEither<UNKNOWN, string> =>
   pipe(
     TE.tryCatch(
       () =>
-        vposPgsClient.ResumeVposPaymentRequest({
+        vposPgsClient.postMethodResumeVpos({
           bearerAuth,
-          requestId,
+          paymentAuthorizationId,
           body: {
             methodCompleted
-          } as VposResumeRequest
+          } as CreditCardResumeRequest
         }),
       () => E.toError
     ),
@@ -49,15 +48,15 @@ export const resumePaymentRequestTask = (
   );
 
 export const getPaymentRequestTask = (
-  requestId: string,
+  paymentAuthorizationId: string,
   bearerAuth: string
 ): TE.TaskEither<UNKNOWN, VPosPollingResponse> =>
   pipe(
     TE.tryCatch(
       () =>
-        vposPgsClient.GetVposPaymentRequest({
+        vposPgsClient.getAuthPaymentVpos({
           bearerAuth,
-          requestId
+          paymentAuthorizationId
         }),
       () => E.toError
     ),

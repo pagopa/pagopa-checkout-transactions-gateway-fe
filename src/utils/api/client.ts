@@ -2,16 +2,23 @@ import { DeferredPromise } from "@pagopa/ts-commons//lib/promises";
 import { Millisecond } from "@pagopa/ts-commons//lib/units";
 import { pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
+import * as t from "io-ts";
 import { createClient } from "../../generated/pgs/client";
-import {
-  StatusEnum,
-  XPayPollingResponseEntity
-} from "../../generated/pgs/XPayPollingResponseEntity";
 import { getConfigOrThrow } from "../config/config";
 import { constantPollingWithPromisePredicateFetch } from "../api/fetch";
-import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
-import { CcPaymentInfoAcceptedResponse } from "../../generated/pgs/CcPaymentInfoAcceptedResponse";
-import { CcPaymentInfoAcsResponse } from "../../generated/pgs/CcPaymentInfoAcsResponse";
+import {
+  StatusEnum as CcStatusEnum,
+  CcPaymentInfoAcceptedResponse
+} from "../../generated/pgs/CcPaymentInfoAcceptedResponse";
+import {
+  StatusEnum as AcsStatusEnum,
+  CcPaymentInfoAcsResponse
+} from "../../generated/pgs/CcPaymentInfoAcsResponse";
+import {
+  StatusEnum as XpayStatusEnum,
+  XPayPaymentAuthorization
+} from "../../generated/pgs/XPayPaymentAuthorization";
+import { CcPaymentInfoAuthorizedResponse } from "../../generated/pgs/CcPaymentInfoAuthorizedResponse";
 
 const conf = getConfigOrThrow();
 const retries: number = 10;
@@ -42,13 +49,13 @@ export const pgsXPAYClient = createClient({
       return (
         r.status !== 200 ||
         pipe(
-          XPayPollingResponseEntity.decode(jsonResponse),
+          XPayPaymentAuthorization.decode(jsonResponse),
           E.fold(
             (_) => false,
-            (resp: XPayPollingResponseEntity) =>
-              resp.status !== StatusEnum.CREATED &&
-              resp.status !== StatusEnum.AUTHORIZED &&
-              resp.status !== StatusEnum.DENIED
+            (resp: XPayPaymentAuthorization) =>
+              resp.status !== XpayStatusEnum.CREATED &&
+              resp.status !== XpayStatusEnum.AUTHORIZED &&
+              resp.status !== XpayStatusEnum.DENIED
           )
         )
       );
@@ -71,7 +78,7 @@ export const vposPgsClient = createClient({
       return (
         r.status !== 200 ||
         pipe(
-          VPosPollingResponse.decode(jsonResponse),
+          CcPaymentInfoAuthorizedResponse.decode(jsonResponse),
           E.fold(
             (_) => false,
             (resp) =>
@@ -84,12 +91,12 @@ export const vposPgsClient = createClient({
                       E.fold(
                         (_err) => false,
                         (acsResp) =>
-                          acsResp.status === StatusEnum.CREATED &&
+                          acsResp.status === AcsStatusEnum.CREATED &&
                           acsResp.vposUrl === undefined
                       )
                     ),
                   (accResp) =>
-                    accResp.status === StatusEnum.CREATED &&
+                    accResp.status === CcStatusEnum.CREATED &&
                     accResp.vposUrl === undefined
                 )
               )
@@ -100,3 +107,14 @@ export const vposPgsClient = createClient({
   ),
   basePath: conf.API_BASEPATH
 });
+
+export const VPosPollingResponse = t.union(
+  [
+    CcPaymentInfoAuthorizedResponse,
+    CcPaymentInfoAcsResponse,
+    CcPaymentInfoAcceptedResponse
+  ],
+  "VPosPollingResponse"
+);
+
+export type VPosPollingResponse = t.TypeOf<typeof VPosPollingResponse>;

@@ -189,7 +189,7 @@ stages:
           - script: |
               echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
             displayName: 'Skip release bundle'
-        - template: templates/node-github-current-version/template.yaml@templates
+        - template: templates/node-github-current-version/template.yaml@pagopaCommons
   
   # Prepare Artifact
   - stage: Prepare_artifact_uat

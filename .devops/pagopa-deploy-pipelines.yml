@@ -312,6 +312,8 @@ stages:
       and(
         eq(${{parameters.UAT_PROD_DEPLOY}}, True),
         eq(dependencies.Prod_WaitForApproval.result, 'Succeeded'),
+        in(dependencies.Release.result, 'Succeeded', 'Skipped')
+      )
     jobs:
       - job: make_build
         pool:

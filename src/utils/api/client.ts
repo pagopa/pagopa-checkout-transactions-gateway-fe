@@ -2,8 +2,6 @@ import { DeferredPromise } from "@pagopa/ts-commons//lib/promises";
 import { Millisecond } from "@pagopa/ts-commons//lib/units";
 import { pipe } from "fp-ts/function";
 import * as E from "fp-ts/Either";
-import * as t from "io-ts";
-import { createClient } from "../../generated/pgs/client";
 import { getConfigOrThrow } from "../config/config";
 import { constantPollingWithPromisePredicateFetch } from "../api/fetch";
 import {
@@ -18,7 +16,8 @@ import {
   StatusEnum as XpayStatusEnum,
   XPayPaymentAuthorization
 } from "../../generated/pgs/XPayPaymentAuthorization";
-import { CcPaymentInfoAuthorizedResponse } from "../../generated/pgs/CcPaymentInfoAuthorizedResponse";
+import { createClient } from "../../generated/pgs/client";
+import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
 
 const conf = getConfigOrThrow();
 const retries: number = 10;
@@ -107,14 +106,3 @@ export const vposPgsClient = createClient({
   ),
   basePath: conf.API_BASEPATH
 });
-
-export const VPosPollingResponse = t.union(
-  [
-    CcPaymentInfoAuthorizedResponse,
-    CcPaymentInfoAcsResponse,
-    CcPaymentInfoAcceptedResponse
-  ],
-  "VPosPollingResponse"
-);
-
-export type VPosPollingResponse = t.TypeOf<typeof VPosPollingResponse>;

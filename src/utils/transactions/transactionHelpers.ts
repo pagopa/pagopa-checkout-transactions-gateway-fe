@@ -2,8 +2,9 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/function";
-import { VPosPollingResponse, vposPgsClient } from "../api/client";
+import { vposPgsClient } from "../api/client";
 import { CreditCardResumeRequest } from "../../generated/pgs/CreditCardResumeRequest";
+import { VPosPollingResponse } from "../../generated/pgs/VPosPollingResponse";
 import { UNKNOWN } from "./transactionStatus";
 
 export const getStringFromSessionStorageTask = (

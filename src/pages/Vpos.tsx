@@ -19,7 +19,7 @@ import {
   getStringFromSessionStorageTask,
   resumePaymentRequestTask
 } from "../utils/transactions/transactionHelpers";
-import { VPosPollingResponse, vposPgsClient } from "../utils/api/client";
+import { vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
 import { getToken } from "../utils/navigation";
 import {
@@ -31,6 +31,7 @@ import {
   ResponseTypeEnum
 } from "../generated/pgs/CcPaymentInfoAcsResponse";
 import { CcPaymentInfoAuthorizedResponse } from "../generated/pgs/CcPaymentInfoAuthorizedResponse";
+import { VPosPollingResponse } from "../generated/pgs/VPosPollingResponse";
 
 const conf = getConfigOrThrow();
 

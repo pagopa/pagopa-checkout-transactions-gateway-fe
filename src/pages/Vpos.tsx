@@ -22,7 +22,6 @@ import {
 import { vposPgsClient } from "../utils/api/client";
 import { getConfigOrThrow } from "../utils/config/config";
 import { getToken } from "../utils/navigation";
-import { VPosPollingResponse } from "../generated/pgs/VPosPollingResponse";
 import {
   CcPaymentInfoAcceptedResponse,
   StatusEnum
@@ -32,6 +31,7 @@ import {
   ResponseTypeEnum
 } from "../generated/pgs/CcPaymentInfoAcsResponse";
 import { CcPaymentInfoAuthorizedResponse } from "../generated/pgs/CcPaymentInfoAuthorizedResponse";
+import { VPosPollingResponse } from "../generated/pgs/VPosPollingResponse";
 
 const conf = getConfigOrThrow();
 
@@ -187,9 +187,9 @@ export default function Vpos() {
     void pipe(
       TE.tryCatch(
         () =>
-          vposPgsClient.GetVposPaymentRequest({
+          vposPgsClient.getAuthPaymentVpos({
             bearerAuth,
-            requestId: id as string
+            paymentAuthorizationId: id as string
           }),
         onError // Polling attempt exausted
       ),

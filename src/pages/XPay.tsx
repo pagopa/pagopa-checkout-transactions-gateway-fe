@@ -9,11 +9,11 @@ import { pipe } from "fp-ts/function";
 import ErrorModal from "../components/modals/ErrorModal";
 import { pgsXPAYClient } from "../utils/api/client";
 import { getToken } from "../utils/navigation";
+import { navigate } from "../utils/navigation";
 import {
   StatusEnum,
-  XPayPollingResponseEntity
-} from "../generated/pgs/XPayPollingResponseEntity";
-import { navigate } from "../utils/navigation";
+  XPayPaymentAuthorization
+} from "../generated/pgs/XPayPaymentAuthorization";
 
 const layoutStyle: SxProps<Theme> = {
   display: "flex",
@@ -37,7 +37,7 @@ export default function XPay() {
     setErrorModalOpen(true);
   };
 
-  const overwriteDom = (resp: XPayPollingResponseEntity) => {
+  const overwriteDom = (resp: XPayPaymentAuthorization) => {
     if (resp.html) {
       document.open("text/html");
       document.write(`<!DOCTYPE HTML> ${resp.html}`);
@@ -50,7 +50,7 @@ export default function XPay() {
 
   const handleRedirect = (redirectUrl: string) => navigate(redirectUrl);
 
-  const handleXPayResponse = (resp: XPayPollingResponseEntity) => {
+  const handleXPayResponse = (resp: XPayPaymentAuthorization) => {
     if (resp.status === StatusEnum.CREATED) {
       overwriteDom(resp);
     } else if (isFinalStatus(resp.status) && resp.redirectUrl !== undefined) {
@@ -63,9 +63,9 @@ export default function XPay() {
     void pipe(
       TE.tryCatch(
         () =>
-          pgsXPAYClient.GetXpayPaymentRequest({
+          pgsXPAYClient.getAuthPaymentXpay({
             bearerAuth,
-            requestId: id as string
+            paymentAuthorizationId: id as string
           }),
         onError
       ),
@@ -74,7 +74,7 @@ export default function XPay() {
           errorOrResp,
           E.map((r) =>
             pipe(
-              XPayPollingResponseEntity.decode(r.value),
+              XPayPaymentAuthorization.decode(r.value),
               E.fold(
                 (_err) => onError(),
                 (r) => {

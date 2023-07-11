@@ -4,7 +4,6 @@ import { theme } from "@pagopa/mui-italia";
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/modals/commons/Layout";
-import Postepay from "./pages/Postepay";
 import XPay from "./pages/XPay";
 import { GatewayRoutes, GatewayRoutesBasePath } from "./routes/routes";
 import "./translations/i18n";
@@ -18,10 +17,6 @@ export function App() {
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route
-              path={`/${GatewayRoutesBasePath}/${GatewayRoutes.POSTEPAY}`}
-              element={<Postepay />}
-            />
             <Route
               path={`/${GatewayRoutesBasePath}/${GatewayRoutes.XPAY}/:id`}
               element={<XPay />}

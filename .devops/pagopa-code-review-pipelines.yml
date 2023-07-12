@@ -1,0 +1,137 @@
+# Azure DevOps pipeline to build, check source codes and run tests.
+#
+# To make Danger JS run on a pull request you need to add the following pipeline 
+# variable and set it with a GitHub access token (scope public_repo); otherwise 
+# set its value to 'skip' without marking it secret: 
+# - DANGER_GITHUB_API_TOKEN
+# 
+
+variables:
+  NODE_VERSION: '14.16.0'
+  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
+  SOURCE_BRANCH: ${{ variables['Build.SourceBranchName'] }}
+
+# Automatically triggered on PR
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
+trigger:
+  branches:
+    include:
+    - main
+    - develop
+
+# Execute agents (jobs) on latest Ubuntu version.
+# To change OS for a specific, ovverride "pool" attribute inside the job definition
+pool:
+  vmImage: 'ubuntu-latest'
+
+resources:
+  repositories:
+    - repository: pagopaCommons
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/tags/v19
+      endpoint: 'io-azure-devops-github-ro'
+    - repository: checkout-be-mock
+      type: github
+      name: pagopa/pagopa-checkout-be-mock
+      ref: master
+      endpoint: 'io-azure-devops-github-ro'
+
+stages:
+  - stage: Build
+    dependsOn: []
+    jobs:
+      - job: make_build  
+        steps:
+        - template: templates/node-job-setup/template.yaml@pagopaCommons
+        - script: |
+             yarn generate
+          displayName: 'Generate'
+        - script: |
+            API_HOST=http://localhost:1234 API_BASEPATH=request-payments API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+          displayName: 'Build'
+  
+  - stage: Static_Analysis
+    dependsOn: []
+    jobs:
+      - job: lint     
+        steps:
+        - template: templates/node-job-setup/template.yaml@pagopaCommons
+        - script: yarn lint
+          displayName: 'Lint'
+      - job: danger
+        condition: 
+          and(
+            succeeded(),
+            ne(variables['DANGER_GITHUB_API_TOKEN'], 'skip')
+          )
+        steps:
+          - template: templates/node-job-setup/template.yaml@pagopaCommons
+
+          - bash: yarn danger ci
+            env:
+              DANGER_GITHUB_API_TOKEN: '$(DANGER_GITHUB_API_TOKEN)'
+            displayName: 'Danger CI'
+  
+  - stage: E2E_Tests
+    pool:
+      vmImage: 'ubuntu-latest'
+    dependsOn: Build
+    jobs:   
+      - job: e2e_tests
+        steps:
+          - checkout: checkout-be-mock
+
+          - script: cp env.example .env
+            workingDirectory: pagopa-checkout-be-mock
+            displayName: 'Setup env for mock'
+
+          - script: yarn install && yarn build
+            workingDirectory: pagopa-checkout-be-mock
+            displayName: 'Setup deps for mock'
+
+          - script: |
+              nohup yarn start &
+            displayName: 'Start backend mock'
+            workingDirectory: pagopa-checkout-be-mock
+          
+          - checkout: self
+          - script: |
+              cd pagopa-checkout-transactions-gateway-fe && git checkout $(SOURCE_BRANCH) && echo "[debug] current branch" && git rev-parse --abbrev-ref HEAD 
+            displayName: 'Restore source branch'
+          - script: |
+             yarn install && yarn generate
+            displayName: 'Start yarn install'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script : |
+             echo "##[debug] Change placeholder ..."
+             ls && git rev-parse --abbrev-ref HEAD 
+             cd test/e2e
+             sed -i "s,^PAYMENT_TRANSACTION_GATEWAY_FE_URL=.*$,PAYMENT_TRANSACTION_GATEWAY_FE_URL=http:/localhost:1234/payment-transactions-gateway," .env
+             cat .env
+            displayName: 'Setup env for e2e tests'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script: |
+             cp env.code_review .env
+             nohup yarn start &
+            displayName: 'Setup env and Start local transaction gateway FE'
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script: |
+              while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:1234)" != "200" ]]; do sleep 5; done
+            displayName: 'Wait for FE to be up and running'
+          - script: |
+             cd test/e2e
+             yarn install && yarn test
+            displayName: 'Run yarn test'
+            continueOnError: true 
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - script: |
+              cp -r test/e2e/test_reports  test_reports
+            displayName: 'Copy test result'
+            continueOnError: true 
+            workingDirectory: pagopa-checkout-transactions-gateway-fe
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml' 
+              searchFolder: '$(System.DefaultWorkingDirectory)'

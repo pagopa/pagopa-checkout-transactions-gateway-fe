@@ -72,7 +72,7 @@ stages:
             displayName: 'Generate'
 
           - script: |
-              API_HOST=https://api.dev.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+              API_HOST=https://api.dev.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/web/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
             displayName: 'Build'
 
           - publish: $(System.DefaultWorkingDirectory)/dist
@@ -155,19 +155,17 @@ stages:
   - stage: Release
     dependsOn: []
     condition:
-      eq(${{parameters.UAT_PROD_DEPLOY}}, true)
-    # condition:
-    #   and(
-    #     succeeded(),
-    #     eq(${{parameters.UAT_PROD_DEPLOY}}, true),
-    #     or(
-    #       eq(variables['Build.SourceBranch'], 'refs/heads/main'),
-    #       and(
-    #         startsWith(variables['Build.SourceBranch'], 'refs/tags'),
-    #         endsWith(variables['Build.SourceBranch'], '-RELEASE')
-    #       )
-    #     )
-    #   )
+      and(
+        succeeded(),
+        eq(${{parameters.UAT_PROD_DEPLOY}}, true),
+        or(
+          eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+          and(
+            startsWith(variables['Build.SourceBranch'], 'refs/tags'),
+            endsWith(variables['Build.SourceBranch'], '-RELEASE')
+          )
+        )
+      )
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -214,7 +212,7 @@ stages:
             displayName: 'Generate'
 
           - script: |
-              API_HOST=https://api.uat.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+              API_HOST=https://api.uat.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/web/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
 
             displayName: 'Build'
 
@@ -333,7 +331,7 @@ stages:
             displayName: 'Generate'
 
           - script: |
-              API_HOST=https://api.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/external/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
+              API_HOST=https://api.platform.pagopa.it API_BASEPATH=payment-transactions-gateway/web/v1 API_GET_INTERVAL=5000 API_TIMEOUT=10000 yarn build
 
             displayName: 'Build'
 

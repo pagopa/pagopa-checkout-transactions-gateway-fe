@@ -1,6 +1,6 @@
 {
   "name": "pagopa-checkout-transactions-gateway-fe",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repository": "https://github.com/pagopa/pagopa-checkout-transactions-gateway-fe.git",
   "author": "PagoPA SpA",
   "license": "MIT",

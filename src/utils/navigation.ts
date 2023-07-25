@@ -27,6 +27,7 @@ function removeChars(subStr: string) {
 export const getToken = flow(
   getHash,
   removeChars("#token="),
-  O.fromNullable,
+  O.of,
+  O.filter((h) => h !== ""),
   O.getOrElse(() => sessionStorage.getItem("bearerAuth"))
 );

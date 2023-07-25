@@ -1,4 +1,5 @@
 import { flow } from "fp-ts/function";
+import * as O from "fp-ts/Option";
 
 /* eslint-disable functional/immutable-data */
 export function getQueryParam(query: string) {
@@ -23,4 +24,9 @@ function getHash(url: string) {
 function removeChars(subStr: string) {
   return (str: string) => str.replace(subStr, "");
 }
-export const getToken = flow(getHash, removeChars("#token="));
+export const getToken = flow(
+  getHash,
+  removeChars("#token="),
+  O.fromNullable,
+  O.getOrElse(() => sessionStorage.getItem("bearerAuth"))
+);

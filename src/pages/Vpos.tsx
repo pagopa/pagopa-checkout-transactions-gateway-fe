@@ -164,7 +164,7 @@ const handleMethodMessage = async (e: MessageEvent<any>) => {
 export default function Vpos() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const bearerAuth = getToken(window.location.href);
+  const bearerAuth = getToken(window.location.href) || "";
   const [errorModalOpen, setErrorModalOpen] = React.useState(false);
   const [polling, setPolling] = React.useState(true);
   const [methodTimeoutElapsed, setMethodTimeoutElapsed] = React.useState(false);
